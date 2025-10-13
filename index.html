@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tematické degustace vín</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f9f9f9;
+        }
+        .tasting-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .tasting-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div id="app" class="container mx-auto p-4 md:p-8">
+        <div id="home">
+            <header class="text-center mb-12">
+                <!-- Cesta k logu je správně na lokální soubor -->
+                <img src="amantes_vinea_logo.png" alt="Logo klubu Amantes Vinea" class="h-24 mx-auto mb-6" onerror="this.onerror=null;this.src='https://placehold.co/200x100/991b1b/ffffff?text=Logo+nenalezeno';">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2">Tematické degustace</h1>
+                <p class="text-lg text-gray-600">Pouze pro členy klubu!</p>
+            </header>
+            <main id="tasting-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></main>
+        </div>
+
+        <div id="detail" class="hidden">
+            <header class="mb-8 flex justify-start items-center">
+                <button id="back-button" class="bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors">&larr; Zpět na termíny</button>
+            </header>
+             <h1 id="detail-title" class="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-8 -mt-4"></h1>
+            <main id="wine-list" class="space-y-6"></main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tastings = [
+                {
+                    id: 'cuvee20250725',
+                    date: '2025-07-25', // Datum pro výpočty
+                    displayDate: '25. července 2025', // Datum pro zobrazení
+                    theme: 'Cuvée - umění míchání vín',
+                    description: 'Prozkoumejte, jak vinaři kombinují různé odrůdy k dosažení dokonalé harmonie chutí a vůní. Čeká na vás 9 unikátních cuvée.',
+                    wineCount: 9,
+                    image: 'cuvee.png'
+                },
+                {
+                    id: 'valtice20250926',
+                    date: '2025-09-26', // Datum pro výpočty
+                    displayDate: '26. - 28. září 2025', // Datum pro zobrazení
+                    theme: 'Výjezdní setkání klubu ve Valticích',
+                    description: 'Tradiční podzimní setkání našeho klubu v srdci moravského vinařství. Těšit se můžete na návštěvy sklípků, řízené degustace a přátelskou atmosféru.',
+                    wineCount: 'Několik',
+                    image: 'valtice.png'
+                },
+                {
+                    id: 'tramin20260109',
+                    date: '2026-01-09',
+                    displayDate: '9. ledna 2026',
+                    theme: 'Tramíny a jejich podoby',
+                    description: 'Objevte aromatický svět Tramínu červeného a jeho příbuzných. Porovnáme vína různých stylů a ročníků.',
+                    wineCount: 8,
+                    image: 'tramin.png'
+                }
+            ];
+
+            const wineData = [
+                { id: 'cuvee20250725', wineId: 1, winery: 'Vinařství Kohút', name: 'Cuvée "dámská jízda" 2023', classification: 'Moravské zemské víno', sweetness: 'Polosuché', alcohol: '12,5 %', origin: 'Morava, Česká republika', pairing: 'Těstoviny, drůbež, dušené maso' },
+                { id: 'cuvee20250725', wineId: 2, winery: 'Vinařství Procházka Valtice', name: 'Cuvée (Sauvignon & Cabernet Blanc)', classification: 'Moravské zemské víno', sweetness: 'Polosladké', alcohol: '12,0 %', origin: 'Morava, Česká republika (Valtice)', pairing: null },
+                { id: 'cuvee20250725', wineId: 3, winery: 'Vinařství Hraniční zámeček', name: 'Romantické cuvée', classification: 'Moravské zemské víno', sweetness: 'Polosladké', alcohol: '11,5 %', origin: 'Morava, Česká republika (Lednicko-valtický areál)', pairing: null },
+                { id: 'cuvee20250725', wineId: 4, winery: 'Vinařství Gertner', name: 'Cuvée Lena 2024', classification: 'Moravské zemské víno', sweetness: 'Polosladké (Zbyt. cukr: 28,7 g/l, Kyseliny: 6,0 g/l)', alcohol: '11,5 %', origin: 'Morava, Slovácká podoblast, obec Starý Poddvorov', pairing: null },
+                { id: 'cuvee20250725', wineId: 5, winery: 'VÍNO HRUŠKA s.r.o.', name: 'Děvín & Muškát moravský 2023', classification: 'Kabinetní víno', sweetness: 'Polosuché (Zbyt. cukr: 13,7 g/l, Kyseliny: 6,5 g/l)', alcohol: '11,5 %', origin: 'Morava, Slovácká podoblast, obec Jalubí, trať Vinohrádky', pairing: null },
+                { id: 'cuvee20250725', wineId: 6, winery: 'VÍNO HRUŠKA s.r.o.', name: 'Tramín červený & Ryzlink rýnský 2023', classification: 'Pozdní sběr', sweetness: 'Polosladké (Zbyt. cukr: 29,8 g/l, Kyseliny: 7,0 g/l)', alcohol: '11,0 %', origin: 'Morava, Slovácká podoblast, obec Blatnička, trať Vinohrádky', pairing: null },
+                { id: 'cuvee20250725', wineId: 7, winery: 'VÍNO HRUŠKA s.r.o.', name: 'Cuvée Nikol 2021', classification: 'Výběr z hroznů', sweetness: 'Polosladké (Zbyt. cukr: 27,9 g/l, Kyseliny: 7,2 g/l)', alcohol: '12,5 %', origin: 'Morava, Slovácká podoblast, obec Blatnička, trať Novosady', pairing: null },
+                { id: 'cuvee20250725', wineId: 8, winery: 'Vinařství Konečný, Čejkovice', name: 'Cuvée Daveé bílé 2022', classification: 'Moravské zemské víno', sweetness: 'Polosladké (Zbyt. cukr: 33,9 g/l, Kyseliny: 7,0 g/l)', alcohol: '12,5 %', origin: 'Morava, Slovácká podoblast, obec Starý Poddvorov, trať Krásná hora', pairing: 'Doporučujeme k romantickým večeřím a večerům.' },
+                { id: 'cuvee20250725', wineId: 9, winery: 'Zámecké vinařství Bzenec', name: 'EGO No.57 2023', classification: 'Jakostní víno odrůdové', sweetness: 'Polosuché (Zbyt. cukr: 11,4 g/l, Kyseliny: 7,1 g/l)', alcohol: '13,5 %', origin: 'Morava', pairing: 'Ocenění: Vinař roku 2016 & 2021, 8x titul Šampion Salonu vín' }
+            ];
+
+            const eventDetails = [
+                {
+                    id: 'valtice20250926',
+                    schedule: [
+                        { day: '1. den (Pátek)', items: [ { time: '16:30', description: 'Návštěva Salónu vín, Valtice', status: 'účast povinná' } ] },
+                        { day: '2. den (Sobota)', items: [ { time: '13:00', description: 'Setkání v Lednici, společný oběd', status: 'účast povinná' }, { time: '', description: 'Další volný program dle domluvy', status: '' } ] },
+                        { day: '3. den (Neděle)', items: [ { time: '12:00', description: 'Aqualand Moravia', status: 'dobrovolně' } ] }
+                    ]
+                }
+            ];
+
+            const homePage = document.getElementById('home');
+            const detailPage = document.getElementById('detail');
+            const tastingListContainer = document.getElementById('tasting-list');
+            const wineListContainer = document.getElementById('wine-list');
+            const detailTitle = document.getElementById('detail-title');
+            const backButton = document.getElementById('back-button');
+
+            function getTimeRemaining(dateString) {
+                const eventDate = new Date(dateString);
+                eventDate.setHours(0, 0, 0, 0);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const diffTime = eventDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays < 0) return 'Proběhlo';
+                if (diffDays === 0) return 'Dnes';
+                if (diffDays === 1) return 'Zítra';
+                return `Za ${diffDays} dní`;
+            }
+
+            function renderHomePage() {
+                tastingListContainer.innerHTML = '';
+                tastings.forEach(tasting => {
+                    const dayInfo = getTimeRemaining(tasting.date);
+                    const card = `
+                        <div class="tasting-card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer" data-id="${tasting.id}">
+                            <img src="${tasting.image}" alt="[Obrázek k tématu ${tasting.theme}]" class="w-full h-48 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/f87171/ffffff?text=Obr%C3%A1zek+nenalezen';">
+                            <div class="p-6">
+                                <p class="text-sm text-red-600 font-semibold">${dayInfo} - ${tasting.displayDate}</p>
+                                <h2 class="text-2xl font-bold text-gray-900 mt-2 mb-3">${tasting.theme}</h2>
+                                <p class="text-gray-600 mb-4">${tasting.description}</p>
+                                <div class="flex justify-between items-center text-sm text-gray-500">
+                                    <span>Počet vín: ${tasting.wineCount}</span>
+                                    <span class="text-red-700 font-semibold">Zobrazit detaily &rarr;</span>
+                                 </div>
+                            </div>
+                        </div>`;
+                    tastingListContainer.innerHTML += card;
+                });
+                document.querySelectorAll('.tasting-card').forEach(card => {
+                    card.addEventListener('click', () => showDetailPage(card.dataset.id));
+                });
+            }
+
+            function showDetailPage(tastingId) {
+                const selectedTasting = tastings.find(t => t.id === tastingId);
+                if (!selectedTasting) return;
+                
+                detailTitle.textContent = selectedTasting.theme;
+                wineListContainer.innerHTML = '';
+
+                const winesForTasting = wineData.filter(w => w.id === tastingId);
+                const detailsForEvent = eventDetails.find(e => e.id === tastingId);
+
+                if (winesForTasting.length > 0) {
+                    winesForTasting.forEach((wine, index) => {
+                        const wineCardHTML = `
+                            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-gray-800">
+                                <h3 class="text-xl font-bold text-gray-900">${index + 1}. ${wine.winery} - ${wine.name}</h3>
+                                <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                    <div><p class="text-gray-500">Klasifikace</p><p class="font-semibold">${wine.classification}</p></div>
+                                    <div><p class="text-gray-500">Cukernatost</p><p class="font-semibold">${wine.sweetness}</p></div>
+                                    <div><p class="text-gray-500">Alkohol</p><p class="font-semibold">${wine.alcohol}</p></div>
+                                    <div class="col-span-2 md:col-span-3"><p class="text-gray-500">Původ</p><p class="font-semibold">${wine.origin}</p></div>
+                                    ${wine.pairing ? `<div class="col-span-2 md:col-span-3"><p class="text-gray-500">Poznámka / Doporučení</p><p class="font-semibold">${wine.pairing}</p></div>` : ''}
+                                </div>
+                            </div>`;
+                        wineListContainer.innerHTML += wineCardHTML;
+                    });
+                } else if (detailsForEvent) {
+                    detailsForEvent.schedule.forEach(day => {
+                        const dayHtml = `
+                            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-gray-800">
+                                <h3 class="text-xl font-bold text-gray-900 mb-4">${day.day}</h3>
+                                <ul class="space-y-3">
+                                    ${day.items.map(item => `
+                                        <li class="flex items-start">
+                                            <span class="font-bold w-16 text-gray-800">${item.time}</span>
+                                            <span class="flex-1">${item.description}</span>
+                                            <span class="text-sm ${item.status === 'účast povinná' ? 'text-red-600' : 'text-green-600'} font-semibold">${item.status}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `;
+                        wineListContainer.innerHTML += dayHtml;
+                    });
+                } else {
+                     wineListContainer.innerHTML = `<p class="text-center text-gray-500">Pro tuto událost zatím není k dispozici detailní program. Těšte se na další informace!</p>`;
+                }
+                
+                homePage.classList.add('hidden');
+                detailPage.classList.remove('hidden');
+                window.scrollTo(0, 0);
+            }
+            
+            function showHomePage() {
+                detailPage.classList.add('hidden');
+                homePage.classList.remove('hidden');
+            }
+
+            backButton.addEventListener('click', showHomePage);
+
+            renderHomePage();
+        });
+    </script>
+</body>
+</html>
+
