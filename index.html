@@ -3,68 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tematické degustace vín</title>
+    <title>Tematické degustace vín - Amantes Vinea Club</title>
+    <!-- Tailwind CSS CDN pro stylování -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Použití fontu Inter pro moderní vzhled, i když původní kód používal Montserrat, Inter je preferován -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Nastavení primárního fontu */
         body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f9f9f9;
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Světle šedé pozadí */
         }
+        /* Styl pro karty s degustacemi, přidání zaoblení a stínu */
         .tasting-card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 0.75rem; /* rounded-xl */
         }
+        /* Efekt při najetí myší */
         .tasting-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transform: translateY(-8px); /* Větší posun pro dynamičtější pocit */
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15); /* Výraznější stín */
+        }
+        /* Styl pro zobrazení programu (např. ve Valticích) */
+        .schedule-status-required {
+            color: #b91c1c; /* red-700 */
+            font-weight: 600;
+        }
+        .schedule-status-optional {
+            color: #059669; /* emerald-600 */
+            font-weight: 600;
+        }
+        /* Styl pro položky v detailu akce */
+        .detail-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .detail-item svg {
+            color: #b91c1c; /* red-700 */
+            margin-right: 0.5rem;
+            width: 1.25rem;
+            height: 1.25rem;
         }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <div id="app" class="container mx-auto p-4 md:p-8">
+    <div id="app" class="container mx-auto p-4 md:p-12 max-w-6xl">
+        
+        <!-- HLAVNÍ STRÁNKA: Přehled termínů -->
         <div id="home">
-            <header class="text-center mb-12">
-                <!-- Cesta k logu je správně na lokální soubor -->
-                <img src="amantes_vinea_logo.png" alt="Logo klubu Amantes Vinea" class="h-24 mx-auto mb-6" onerror="this.onerror=null;this.src='https://placehold.co/200x100/991b1b/ffffff?text=Logo+nenalezeno';">
-                <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2">Tematické degustace</h1>
-                <p class="text-lg text-gray-600">Pouze pro členy klubu!</p>
+            <header class="text-center mb-16 pt-8">
+                <!-- Vložení loga s cestou k nahranému souboru -->
+                <img src="amantes_vinea_logo.png" alt="Logo klubu Amantes Vinea" class="h-28 mx-auto mb-6 drop-shadow-lg" onerror="this.onerror=null;this.src='https://placehold.co/250x110/374151/ffffff?text=Amantes+Vinea';">
+                <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                    Tematické degustace
+                </h1>
+                <p class="text-xl text-gray-600 italic">
+                    Výjimečné termíny. Pouze pro členy klubu.
+                </p>
             </header>
-            <main id="tasting-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></main>
+            
+            <!-- Kontejner pro karty s degustacemi -->
+            <main id="tasting-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10"></main>
         </div>
 
+        <!-- DETAILNÍ STRÁNKA: Seznam vín nebo program akce -->
         <div id="detail" class="hidden">
-            <header class="mb-8 flex justify-start items-center">
-                <button id="back-button" class="bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors">&larr; Zpět na termíny</button>
+            <header class="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                <button id="back-button" class="bg-gray-800 text-white py-3 px-6 rounded-xl hover:bg-gray-700 transition-colors text-lg font-semibold shadow-lg mb-4 sm:mb-0">
+                    &larr; Zpět na přehled akcí
+                </button>
+                <h1 id="detail-title" class="text-4xl font-bold text-gray-900"></h1>
             </header>
-             <h1 id="detail-title" class="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-8 -mt-4"></h1>
+            
+            <!-- Kontejner pro detailní obsah (vína nebo program) -->
             <main id="wine-list" class="space-y-6"></main>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const tastings = [
-                {
-                    id: 'cuvee20250725',
-                    date: '2025-07-25', // Datum pro výpočty
-                    displayDate: '25. července 2025', // Datum pro zobrazení
-                    theme: 'Cuvée - umění míchání vín',
-                    description: 'Prozkoumejte, jak vinaři kombinují různé odrůdy k dosažení dokonalé harmonie chutí a vůní. Čeká na vás 9 unikátních cuvée.',
-                    wineCount: 9,
-                    image: 'cuvee.png'
-                },
-                {
-                    id: 'valtice20250926',
-                    date: '2025-09-26', // Datum pro výpočty
-                    displayDate: '26. - 28. září 2025', // Datum pro zobrazení
-                    theme: 'Výjezdní setkání klubu ve Valticích',
-                    description: 'Tradiční podzimní setkání našeho klubu v srdci moravského vinařství. Těšit se můžete na návštěvy sklípků, řízené degustace a přátelskou atmosféru.',
-                    wineCount: 'Několik',
-                    image: 'valtice.png'
-                },
+            // --- Data o degustacích (NOVÉ POŘADÍ - NEJNOVĚJŠÍ PRVNÍ) ---
+            let tastings = [
                 {
                     id: 'tramin20260109',
                     date: '2026-01-09',
@@ -73,9 +96,37 @@
                     description: 'Objevte aromatický svět Tramínu červeného a jeho příbuzných. Porovnáme vína různých stylů a ročníků.',
                     wineCount: 8,
                     image: 'tramin.png'
+                },
+                {
+                    id: 'kralovskykostostrava20251101', // NOVÁ AKCE
+                    date: '2025-11-01', 
+                    displayDate: '1. listopadu 2025 (18:00 - 22:30)', 
+                    theme: 'Královský košt Ostrava',
+                    description: 'Pultová degustace nejlepších vín soutěže KRÁL VÍN České republiky 2025. Místo konání: Kulturní dům Akord, Ostrava-Zábřeh.',
+                    wineCount: 'Neomezeně',
+                    image: 'kralovsky_kost.png'
+                },
+                {
+                    id: 'valtice20250926',
+                    date: '2025-09-26', 
+                    displayDate: '26. - 28. září 2025', 
+                    theme: 'Výjezdní setkání klubu ve Valticích',
+                    description: 'Tradiční podzimní setkání našeho klubu v srdci moravského vinařství. Těšit se můžete na návštěvy sklípků, řízené degustace a přátelskou atmosféru.',
+                    wineCount: 'Několik',
+                    image: 'valtice.png'
+                },
+                {
+                    id: 'cuvee20250725',
+                    date: '2025-07-25', 
+                    displayDate: '25. července 2025', 
+                    theme: 'Cuvée - umění míchání vín',
+                    description: 'Prozkoumejte, jak vinaři kombinují různé odrůdy k dosažení dokonalé harmonie chutí a vůní. Čeká na vás 9 unikátních cuvée.',
+                    wineCount: 9,
+                    image: 'cuvee.png'
                 }
             ];
 
+            // --- Detailní data o vínech pro degustaci Cuvée ---
             const wineData = [
                 { id: 'cuvee20250725', wineId: 1, winery: 'Vinařství Kohút', name: 'Cuvée "dámská jízda" 2023', classification: 'Moravské zemské víno', sweetness: 'Polosuché', alcohol: '12,5 %', origin: 'Morava, Česká republika', pairing: 'Těstoviny, drůbež, dušené maso' },
                 { id: 'cuvee20250725', wineId: 2, winery: 'Vinařství Procházka Valtice', name: 'Cuvée (Sauvignon & Cabernet Blanc)', classification: 'Moravské zemské víno', sweetness: 'Polosladké', alcohol: '12,0 %', origin: 'Morava, Česká republika (Valtice)', pairing: null },
@@ -88,17 +139,42 @@
                 { id: 'cuvee20250725', wineId: 9, winery: 'Zámecké vinařství Bzenec', name: 'EGO No.57 2023', classification: 'Jakostní víno odrůdové', sweetness: 'Polosuché (Zbyt. cukr: 11,4 g/l, Kyseliny: 7,1 g/l)', alcohol: '13,5 %', origin: 'Morava', pairing: 'Ocenění: Vinař roku 2016 & 2021, 8x titul Šampion Salonu vín' }
             ];
 
+            // --- Detailní programy akcí ---
             const eventDetails = [
+                {
+                    id: 'kralovskykostostrava20251101', // NOVÝ PROGRAM
+                    schedule: [
+                        { day: 'Informace k pultové degustaci', items: [
+                            { time: 'Místo konání', description: 'Kulturní centrum Akord Ostrava, náměstí SNP 1, Ostrava-Zábřeh', status: '' },
+                            { time: 'Čas', description: '18:00 - 22:30', status: 'Účast povinná' },
+                            { time: 'Degustace', description: 'Neomezená pultová degustace nejlepších českých a moravských vín z KRÁLE VÍN ČR 2025.', status: 'All-inclusive' },
+                            { time: 'Občerstvení', description: 'Drobné občerstvení k vínu od partnerů KRÁLE VÍN a voda Šumavský pramen.', status: 'V ceně' },
+                            { time: 'Doprovodný program', description: 'Interaktivní komunikace, soutěže o vinné ceny, tombola.', status: 'Dobrovolně' },
+                            { time: 'Katalog', description: 'E-kniha KRÁL VÍN 2025 a e-Katalog vín s možností poznámek k degustovaným vzorkům.', status: 'V ceně' }
+                        ] }
+                    ]
+                },
                 {
                     id: 'valtice20250926',
                     schedule: [
-                        { day: '1. den (Pátek)', items: [ { time: '16:30', description: 'Návštěva Salónu vín, Valtice', status: 'účast povinná' } ] },
-                        { day: '2. den (Sobota)', items: [ { time: '13:00', description: 'Setkání v Lednici, společný oběd', status: 'účast povinná' }, { time: '', description: 'Další volný program dle domluvy', status: '' } ] },
-                        { day: '3. den (Neděle)', items: [ { time: '12:00', description: 'Aqualand Moravia', status: 'dobrovolně' } ] }
+                        { day: '1. den (Pátek)', items: [ 
+                            { time: '15:00', description: 'Ubytování a volný program', status: 'Dobrovolně' },
+                            { time: '17:00', description: 'Návštěva Salónu vín, Valtice (vstupenky zajištěny)', status: 'Účast povinná' } 
+                        ] },
+                        { day: '2. den (Sobota)', items: [ 
+                            { time: '10:00', description: 'Pěší túra vinicemi', status: 'Dobrovolně' }, 
+                            { time: '13:00', description: 'Setkání v Lednici, společný oběd (degustace místních specialit)', status: 'Účast povinná' }, 
+                            { time: '18:00', description: 'Večerní řízená degustace ve sklípku (Vinařství Tři Bratři)', status: 'Účast povinná' } 
+                        ] },
+                        { day: '3. den (Neděle)', items: [ 
+                            { time: '10:00', description: 'Degustace v Lednicko-valtickém areálu', status: 'Dobrovolně' }, 
+                            { time: '13:00', description: 'Rozloučení a odjezd', status: '' } 
+                        ] }
                     ]
                 }
             ];
 
+            // --- Reference na DOM elementy ---
             const homePage = document.getElementById('home');
             const detailPage = document.getElementById('detail');
             const tastingListContainer = document.getElementById('tasting-list');
@@ -106,6 +182,11 @@
             const detailTitle = document.getElementById('detail-title');
             const backButton = document.getElementById('back-button');
 
+            /**
+             * Vypočítá zbývající dny do akce.
+             * @param {string} dateString Datum ve formátu YYYY-MM-DD
+             * @returns {string} Textový popis (např. 'Za 10 dní', 'Proběhlo')
+             */
             function getTimeRemaining(dateString) {
                 const eventDate = new Date(dateString);
                 eventDate.setHours(0, 0, 0, 0);
@@ -113,36 +194,61 @@
                 today.setHours(0, 0, 0, 0);
                 const diffTime = eventDate - today;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (diffDays < 0) return 'Proběhlo';
-                if (diffDays === 0) return 'Dnes';
-                if (diffDays === 1) return 'Zítra';
-                return `Za ${diffDays} dní`;
+                
+                if (diffDays < -3) return 'Proběhlo'; // Ukončeno před více než 3 dny
+                if (diffDays <= 0) return 'Právě probíhá';
+                if (diffDays === 1) return 'Zítra!';
+                if (diffDays < 7) return `Za ${diffDays} dny`;
+                if (diffDays <= 30) return `Za ${diffDays} dní`;
+                return `Za ${Math.floor(diffDays / 30)} měsíců`;
             }
 
+            /**
+             * Vykreslí karty s přehledem degustací na domovské stránce.
+             */
             function renderHomePage() {
                 tastingListContainer.innerHTML = '';
+                
+                // Setřídění akcí podle data sestupně (nejnovější první)
+                // Převedeme data na Date objekty pro správné porovnání
+                tastings.sort((a, b) => new Date(b.date) - new Date(a.date));
+
                 tastings.forEach(tasting => {
                     const dayInfo = getTimeRemaining(tasting.date);
                     const card = `
-                        <div class="tasting-card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer" data-id="${tasting.id}">
-                            <img src="${tasting.image}" alt="[Obrázek k tématu ${tasting.theme}]" class="w-full h-48 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/f87171/ffffff?text=Obr%C3%A1zek+nenalezen';">
+                        <div class="tasting-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer" data-id="${tasting.id}">
+                            <!-- Použití nahraného obrázku s elegantním placeholderem pro chybu -->
+                            <img src="${tasting.image}" alt="Obrázek k tématu ${tasting.theme}" 
+                                 class="w-full h-52 object-cover" 
+                                 onerror="this.onerror=null;this.src='https://placehold.co/600x400/374151/ffffff?text=${tasting.theme.split(' ')[0]}';">
                             <div class="p-6">
-                                <p class="text-sm text-red-600 font-semibold">${dayInfo} - ${tasting.displayDate}</p>
-                                <h2 class="text-2xl font-bold text-gray-900 mt-2 mb-3">${tasting.theme}</h2>
-                                <p class="text-gray-600 mb-4">${tasting.description}</p>
-                                <div class="flex justify-between items-center text-sm text-gray-500">
-                                    <span>Počet vín: ${tasting.wineCount}</span>
-                                    <span class="text-red-700 font-semibold">Zobrazit detaily &rarr;</span>
+                                <!-- Dynamická informace o datu a zbývajícím čase -->
+                                <p class="text-sm font-semibold mb-2 ${dayInfo.includes('Probíhá') || dayInfo.includes('Zítra') ? 'text-red-600' : 'text-gray-500'}">
+                                    ${dayInfo} &middot; ${tasting.displayDate}
+                                </p>
+                                <h2 class="text-2xl font-bold text-gray-900 mt-1 mb-3">${tasting.theme}</h2>
+                                <p class="text-gray-600 mb-5">${tasting.description}</p>
+                                <div class="flex justify-between items-center text-sm font-medium border-t pt-4">
+                                    <span class="text-gray-500">Počet vzorků: <span class="text-gray-900 font-bold">${tasting.wineCount}</span></span>
+                                    <span class="text-red-700 font-bold hover:text-red-900 transition-colors">
+                                        Zobrazit detaily <span aria-hidden="true">&rarr;</span>
+                                    </span>
                                  </div>
                             </div>
                         </div>`;
                     tastingListContainer.innerHTML += card;
                 });
+                
+                // Přidání posluchačů událostí k nově vytvořeným kartám
                 document.querySelectorAll('.tasting-card').forEach(card => {
                     card.addEventListener('click', () => showDetailPage(card.dataset.id));
                 });
             }
 
+            /**
+             * Vykreslí detailní stránku pro vybranou degustaci.
+             * @param {string} tastingId ID vybrané degustace
+             */
             function showDetailPage(tastingId) {
                 const selectedTasting = tastings.find(t => t.id === tastingId);
                 if (!selectedTasting) return;
@@ -153,58 +259,112 @@
                 const winesForTasting = wineData.filter(w => w.id === tastingId);
                 const detailsForEvent = eventDetails.find(e => e.id === tastingId);
 
+                // --- Vykreslení seznamu vín (pro Cuvée, Tramín atd.) ---
                 if (winesForTasting.length > 0) {
                     winesForTasting.forEach((wine, index) => {
                         const wineCardHTML = `
-                            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-gray-800">
-                                <h3 class="text-xl font-bold text-gray-900">${index + 1}. ${wine.winery} - ${wine.name}</h3>
-                                <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                    <div><p class="text-gray-500">Klasifikace</p><p class="font-semibold">${wine.classification}</p></div>
-                                    <div><p class="text-gray-500">Cukernatost</p><p class="font-semibold">${wine.sweetness}</p></div>
-                                    <div><p class="text-gray-500">Alkohol</p><p class="font-semibold">${wine.alcohol}</p></div>
-                                    <div class="col-span-2 md:col-span-3"><p class="text-gray-500">Původ</p><p class="font-semibold">${wine.origin}</p></div>
-                                    ${wine.pairing ? `<div class="col-span-2 md:col-span-3"><p class="text-gray-500">Poznámka / Doporučení</p><p class="font-semibold">${wine.pairing}</p></div>` : ''}
+                            <div class="bg-white rounded-xl shadow-lg p-6 border-l-8 border-red-700">
+                                <h3 class="text-2xl font-extrabold text-gray-900 mb-3">
+                                    <span class="text-red-700">${index + 1}.</span> ${wine.name}
+                                </h3>
+                                <p class="text-lg text-gray-700 font-semibold mb-4">${wine.winery}</p>
+                                
+                                <!-- Detailní informace ve sloupci -->
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-6 text-sm">
+                                    <div><p class="text-gray-500">Klasifikace</p><p class="font-bold text-gray-800">${wine.classification}</p></div>
+                                    <div><p class="text-gray-500">Cukernatost</p><p class="font-bold text-gray-800">${wine.sweetness}</p></div>
+                                    <div><p class="text-gray-500">Alkohol</p><p class="font-bold text-gray-800">${wine.alcohol}</p></div>
+                                    <div class="md:col-span-1"><p class="text-gray-500">Původ</p><p class="font-bold text-gray-800">${wine.origin}</p></div>
                                 </div>
+                                
+                                ${wine.pairing ? `
+                                <div class="mt-6 p-4 bg-gray-50 rounded-lg border-l-4 border-gray-300">
+                                    <p class="text-gray-500 font-medium">Poznámka / Doporučení</p>
+                                    <p class="font-medium text-gray-800">${wine.pairing}</p>
+                                </div>` : ''}
                             </div>`;
                         wineListContainer.innerHTML += wineCardHTML;
                     });
+                
+                // --- Vykreslení programu akce (pro Valtice a Královský košt) ---
                 } else if (detailsForEvent) {
                     detailsForEvent.schedule.forEach(day => {
-                        const dayHtml = `
-                            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-gray-800">
-                                <h3 class="text-xl font-bold text-gray-900 mb-4">${day.day}</h3>
-                                <ul class="space-y-3">
-                                    ${day.items.map(item => `
-                                        <li class="flex items-start">
-                                            <span class="font-bold w-16 text-gray-800">${item.time}</span>
-                                            <span class="flex-1">${item.description}</span>
-                                            <span class="text-sm ${item.status === 'účast povinná' ? 'text-red-600' : 'text-green-600'} font-semibold">${item.status}</span>
-                                        </li>
-                                    `).join('')}
-                                </ul>
-                            </div>
-                        `;
-                        wineListContainer.innerHTML += dayHtml;
+                        // Přidání sekce s ikonami (pro Královský košt)
+                        if (day.day === 'Informace k pultové degustaci') {
+                            wineListContainer.innerHTML += `
+                                <div class="bg-white rounded-xl shadow-lg p-6">
+                                    <h3 class="text-2xl font-bold text-gray-900 mb-4">${day.day}</h3>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        ${day.items.map(item => {
+                                            let icon = '';
+                                            if (item.time.includes('Místo konání')) icon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>`;
+                                            else if (item.time.includes('Čas')) icon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`;
+                                            else if (item.time.includes('Degustace')) icon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.53-7.5a.75.75 0 0 0-1.06 0l-.357.357a.75.75 0 0 1-1.06 0L12 9.75l-.357.357a.75.75 0 0 1-1.06 0l-.357-.357a.75.75 0 0 0-1.06 0V15a.75.75 0 0 0 .75.75h9a.75.75 0 0 0 .75-.75V8.25a.75.75 0 0 0-1.06 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25h1.5M9 21h1.5M12 17.25h1.5M12 21h1.5M15 17.25h1.5M15 21h1.5" /></svg>`;
+                                            else if (item.time.includes('Občerstvení')) icon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.2 48.2 0 0 1 10.978 0Z" /></svg>`;
+                                            else if (item.time.includes('Doprovodný program')) icon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.406 13.911a3.75 3.75 0 1 1-5.819-3.413 3.75 3.75 0 0 1 5.819 3.413Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M14.5 19.5a7.5 7.5 0 0 0 7.5-7.5 7.5 7.5 0 0 0-7.5-7.5 7.5 7.5 0 0 0-7.5 7.5 7.5 7.5 0 0 0 7.5 7.5Z" /></svg>`;
+                                            else if (item.time.includes('Katalog')) icon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M13.5 10.5H9.75m6.75 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`;
+                                            return `
+                                                <div class="detail-item">
+                                                    ${icon}
+                                                    <div>
+                                                        <p class="text-gray-500 font-medium">${item.time}</p>
+                                                        <p class="font-bold text-gray-800">${item.description}</p>
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // Standardní vykreslení programu (pro Valtice)
+                            const dayHtml = `
+                                <div class="bg-white rounded-xl shadow-lg p-6 border-l-8 border-red-500">
+                                    <h3 class="text-2xl font-bold text-gray-900 mb-4">${day.day}</h3>
+                                    <ul class="space-y-4">
+                                        ${day.items.map(item => `
+                                            <li class="flex flex-col sm:flex-row sm:items-center p-3 border-b last:border-b-0">
+                                                <span class="font-extrabold w-24 text-gray-800 text-lg sm:text-base">${item.time || 'Celý den'}</span>
+                                                <span class="flex-1 text-gray-700 pr-4">${item.description}</span>
+                                                <span class="text-xs uppercase px-3 py-1 rounded-full whitespace-nowrap 
+                                                    ${item.status.includes('povinná') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'} font-bold">
+                                                    ${item.status}
+                                                </span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            `;
+                            wineListContainer.innerHTML += dayHtml;
+                        }
                     });
+                
+                // --- Zpráva o chybějícím programu ---
                 } else {
-                     wineListContainer.innerHTML = `<p class="text-center text-gray-500">Pro tuto událost zatím není k dispozici detailní program. Těšte se na další informace!</p>`;
+                     wineListContainer.innerHTML = `<p class="text-center text-xl p-8 bg-white rounded-xl shadow-lg text-gray-500">Pro tuto událost zatím není k dispozici detailní program. Těšte se na další informace!</p>`;
                 }
                 
+                // Přepnutí zobrazení
                 homePage.classList.add('hidden');
                 detailPage.classList.remove('hidden');
-                window.scrollTo(0, 0);
+                // Přejít na začátek stránky
+                window.scrollTo(0, 0); 
             }
             
+            /**
+             * Zobrazí domovskou stránku.
+             */
             function showHomePage() {
                 detailPage.classList.add('hidden');
                 homePage.classList.remove('hidden');
             }
 
+            // Nastavení události pro tlačítko Zpět
             backButton.addEventListener('click', showHomePage);
 
+            // Prvotní vykreslení domovské stránky
             renderHomePage();
         });
     </script>
 </body>
 </html>
-
