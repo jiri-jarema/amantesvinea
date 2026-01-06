@@ -6,7 +6,7 @@
     <title>Tematické degustace vín - Amantes Vinea Club</title>
     <!-- Tailwind CSS CDN pro stylování -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Použití fontu Inter pro moderní vzhled, i když původní kód používal Montserrat, Inter je preferován -->
+    <!-- Použití fontu Inter pro moderní vzhled -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -47,6 +47,11 @@
             width: 1.25rem;
             height: 1.25rem;
         }
+        /* Styl pro informační boxy o odrůdách */
+        .variety-info {
+            background-color: #fff7ed; /* oranžová-50 */
+            border-left: 4px solid #ea580c; /* oranžová-600 */
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -79,6 +84,22 @@
                 <h1 id="detail-title" class="text-4xl font-bold text-gray-900"></h1>
             </header>
             
+            <!-- Kontejner pro informace o odrůdách (jen pro relevantní akce) -->
+            <div id="variety-info-container" class="mb-8 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="variety-info p-6 rounded-lg shadow-sm">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Hibernal</h3>
+                        <p class="text-sm text-gray-700 mb-2"><strong>Původ:</strong> Německo (Geisenheim, 1944). Kříženec Seibel 7053 x Ryzlink rýnský. Patří mezi tzv. PIWI odrůdy (rezistentní).</p>
+                        <p class="text-sm text-gray-700"><strong>Charakteristika:</strong> Výrazně aromatická odrůda připomínající Sauvignon Blanc či Ryzlink. Vůně černého rybízu, angreštu, broskví a citrusů. Vyšší kyselinka dodává svěžest.</p>
+                    </div>
+                    <div class="variety-info p-6 rounded-lg shadow-sm" style="border-left-color: #ca8a04; background-color: #fefce8;">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Kerner</h3>
+                        <p class="text-sm text-gray-700 mb-2"><strong>Původ:</strong> Německo (Weinsberg, 1929). Kříženec Trolínské x Ryzlink rýnský. Pojmenována po básníkovi a lékaři J. Kernerovi.</p>
+                        <p class="text-sm text-gray-700"><strong>Charakteristika:</strong> Svěží vína ryzlinkového typu, ale s nižší kyselinkou a plnějším tělem. Aromatika zahrnuje tóny muškátu, bílých květů, meruněk a medu.</p>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Kontejner pro detailní obsah (vína nebo program) -->
             <main id="wine-list" class="space-y-6"></main>
         </div>
@@ -86,19 +107,19 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Data o degustacích (NOVÉ POŘADÍ - NEJNOVĚJŠÍ PRVNÍ) ---
+            // --- Data o degustacích ---
             let tastings = [
                 {
-                    id: 'tramin20260109',
+                    id: 'hibernalkerner20260109',
                     date: '2026-01-09',
                     displayDate: '9. ledna 2026',
-                    theme: 'Tramíny a jejich podoby',
-                    description: 'Objevte aromatický svět Tramínu červeného a jeho příbuzných. Porovnáme vína různých stylů a ročníků.',
-                    wineCount: 8,
+                    theme: 'Odrůdy Hibernal a Kerner',
+                    description: 'Večer věnovaný populárním odrůdám Hibernal a Kerner. Prozkoumáme jejich aromatický profil, od svěžích tónů až po plná vyzrálá vína.',
+                    wineCount: 4,
                     image: 'tramin.png'
                 },
                 {
-                    id: 'kralovskykostostrava20251101', // NOVÁ AKCE
+                    id: 'kralovskykostostrava20251101', 
                     date: '2025-11-01', 
                     displayDate: '1. listopadu 2025 (18:00 - 22:30)', 
                     theme: 'Královský košt Ostrava',
@@ -126,8 +147,55 @@
                 }
             ];
 
-            // --- Detailní data o vínech pro degustaci Cuvée ---
+            // --- Detailní data o vínech ---
             const wineData = [
+                // DOPLNĚNÁ DATA PRO HIBERNAL & KERNER
+                { 
+                    id: 'hibernalkerner20260109', 
+                    wineId: 1, 
+                    winery: 'Vinařství Kohút Čejkovice', 
+                    name: 'Hibernal 2023', 
+                    classification: 'Moravské zemské víno', 
+                    sweetness: 'Suché', 
+                    alcohol: '12,5 %', 
+                    origin: 'Morava, Velkopavlovická', 
+                    pairing: 'Asijské speciality, chřest, kozí sýry' 
+                },
+                { 
+                    id: 'hibernalkerner20260109', 
+                    wineId: 2, 
+                    winery: 'Vinařství u Svobodů Šatov', 
+                    name: 'Kerner 2024', 
+                    classification: 'Pozdní sběr', 
+                    sweetness: 'Polosladké', 
+                    alcohol: '11,5 %', 
+                    origin: 'Morava, Znojemská', 
+                    pairing: 'Ovocné dezerty, jemné sýry s modrou plísní' 
+                },
+                { 
+                    id: 'hibernalkerner20260109', 
+                    wineId: 3, 
+                    winery: 'Zámecké vinařství Bzenec', 
+                    name: 'Kerner 2022', 
+                    classification: 'Pozdní sběr', 
+                    sweetness: 'Polosuché', 
+                    alcohol: '12,5 %', 
+                    origin: 'Morava, Mikulovská', 
+                    pairing: 'Telecí maso, těstoviny se smetanovou omáčkou' 
+                },
+                { 
+                    id: 'hibernalkerner20260109', 
+                    wineId: 4, 
+                    winery: 'Vinselect Michlovský', 
+                    name: 'Hibernal 2023', 
+                    classification: 'Pozdní sběr', 
+                    sweetness: 'Suché', 
+                    alcohol: '13,0 %', 
+                    origin: 'Morava, Mikulovská', 
+                    pairing: 'Mořské plody, výraznější úpravy ryb, kořeněná jídla' 
+                },
+
+                // PŮVODNÍ DATA PRO CUVÉE
                 { id: 'cuvee20250725', wineId: 1, winery: 'Vinařství Kohút', name: 'Cuvée "dámská jízda" 2023', classification: 'Moravské zemské víno', sweetness: 'Polosuché', alcohol: '12,5 %', origin: 'Morava, Česká republika', pairing: 'Těstoviny, drůbež, dušené maso' },
                 { id: 'cuvee20250725', wineId: 2, winery: 'Vinařství Procházka Valtice', name: 'Cuvée (Sauvignon & Cabernet Blanc)', classification: 'Moravské zemské víno', sweetness: 'Polosladké', alcohol: '12,0 %', origin: 'Morava, Česká republika (Valtice)', pairing: null },
                 { id: 'cuvee20250725', wineId: 3, winery: 'Vinařství Hraniční zámeček', name: 'Romantické cuvée', classification: 'Moravské zemské víno', sweetness: 'Polosladké', alcohol: '11,5 %', origin: 'Morava, Česká republika (Lednicko-valtický areál)', pairing: null },
@@ -142,7 +210,7 @@
             // --- Detailní programy akcí ---
             const eventDetails = [
                 {
-                    id: 'kralovskykostostrava20251101', // NOVÝ PROGRAM
+                    id: 'kralovskykostostrava20251101', 
                     schedule: [
                         { day: 'Informace k pultové degustaci', items: [
                             { time: 'Místo konání', description: 'Kulturní centrum Akord Ostrava, náměstí SNP 1, Ostrava-Zábřeh', status: '' },
@@ -181,6 +249,7 @@
             const wineListContainer = document.getElementById('wine-list');
             const detailTitle = document.getElementById('detail-title');
             const backButton = document.getElementById('back-button');
+            const varietyInfoContainer = document.getElementById('variety-info-container');
 
             /**
              * Vypočítá zbývající dny do akce.
@@ -210,19 +279,16 @@
                 tastingListContainer.innerHTML = '';
                 
                 // Setřídění akcí podle data sestupně (nejnovější první)
-                // Převedeme data na Date objekty pro správné porovnání
                 tastings.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 tastings.forEach(tasting => {
                     const dayInfo = getTimeRemaining(tasting.date);
                     const card = `
                         <div class="tasting-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer" data-id="${tasting.id}">
-                            <!-- Použití nahraného obrázku s elegantním placeholderem pro chybu -->
                             <img src="${tasting.image}" alt="Obrázek k tématu ${tasting.theme}" 
                                  class="w-full h-52 object-cover" 
                                  onerror="this.onerror=null;this.src='https://placehold.co/600x400/374151/ffffff?text=${tasting.theme.split(' ')[0]}';">
                             <div class="p-6">
-                                <!-- Dynamická informace o datu a zbývajícím čase -->
                                 <p class="text-sm font-semibold mb-2 ${dayInfo.includes('Probíhá') || dayInfo.includes('Zítra') ? 'text-red-600' : 'text-gray-500'}">
                                     ${dayInfo} &middot; ${tasting.displayDate}
                                 </p>
@@ -239,7 +305,6 @@
                     tastingListContainer.innerHTML += card;
                 });
                 
-                // Přidání posluchačů událostí k nově vytvořeným kartám
                 document.querySelectorAll('.tasting-card').forEach(card => {
                     card.addEventListener('click', () => showDetailPage(card.dataset.id));
                 });
@@ -256,10 +321,17 @@
                 detailTitle.textContent = selectedTasting.theme;
                 wineListContainer.innerHTML = '';
 
+                // Zobrazení sekce "O odrůdách" pouze pro relevantní akci
+                if (tastingId === 'hibernalkerner20260109') {
+                    varietyInfoContainer.classList.remove('hidden');
+                } else {
+                    varietyInfoContainer.classList.add('hidden');
+                }
+
                 const winesForTasting = wineData.filter(w => w.id === tastingId);
                 const detailsForEvent = eventDetails.find(e => e.id === tastingId);
 
-                // --- Vykreslení seznamu vín (pro Cuvée, Tramín atd.) ---
+                // --- Vykreslení seznamu vín ---
                 if (winesForTasting.length > 0) {
                     winesForTasting.forEach((wine, index) => {
                         const wineCardHTML = `
@@ -269,7 +341,6 @@
                                 </h3>
                                 <p class="text-lg text-gray-700 font-semibold mb-4">${wine.winery}</p>
                                 
-                                <!-- Detailní informace ve sloupci -->
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-6 text-sm">
                                     <div><p class="text-gray-500">Klasifikace</p><p class="font-bold text-gray-800">${wine.classification}</p></div>
                                     <div><p class="text-gray-500">Cukernatost</p><p class="font-bold text-gray-800">${wine.sweetness}</p></div>
@@ -286,10 +357,9 @@
                         wineListContainer.innerHTML += wineCardHTML;
                     });
                 
-                // --- Vykreslení programu akce (pro Valtice a Královský košt) ---
+                // --- Vykreslení programu akce ---
                 } else if (detailsForEvent) {
                     detailsForEvent.schedule.forEach(day => {
-                        // Přidání sekce s ikonami (pro Královský košt)
                         if (day.day === 'Informace k pultové degustaci') {
                             wineListContainer.innerHTML += `
                                 <div class="bg-white rounded-xl shadow-lg p-6">
@@ -317,7 +387,6 @@
                                 </div>
                             `;
                         } else {
-                            // Standardní vykreslení programu (pro Valtice)
                             const dayHtml = `
                                 <div class="bg-white rounded-xl shadow-lg p-6 border-l-8 border-red-500">
                                     <h3 class="text-2xl font-bold text-gray-900 mb-4">${day.day}</h3>
@@ -338,31 +407,22 @@
                             wineListContainer.innerHTML += dayHtml;
                         }
                     });
-                
-                // --- Zpráva o chybějícím programu ---
                 } else {
                      wineListContainer.innerHTML = `<p class="text-center text-xl p-8 bg-white rounded-xl shadow-lg text-gray-500">Pro tuto událost zatím není k dispozici detailní program. Těšte se na další informace!</p>`;
                 }
                 
-                // Přepnutí zobrazení
                 homePage.classList.add('hidden');
                 detailPage.classList.remove('hidden');
-                // Přejít na začátek stránky
                 window.scrollTo(0, 0); 
             }
             
-            /**
-             * Zobrazí domovskou stránku.
-             */
             function showHomePage() {
                 detailPage.classList.add('hidden');
                 homePage.classList.remove('hidden');
             }
 
-            // Nastavení události pro tlačítko Zpět
             backButton.addEventListener('click', showHomePage);
 
-            // Prvotní vykreslení domovské stránky
             renderHomePage();
         });
     </script>
