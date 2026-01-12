@@ -52,6 +52,33 @@
             background-color: #fff7ed; /* oranžová-50 */
             border-left: 4px solid #ea580c; /* oranžová-600 */
         }
+        /* Animace pro načítání */
+        @keyframes pulse-ai {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        .animate-pulse-ai {
+            animation: pulse-ai 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        /* Styl pro AI výstupy */
+        .ai-response-box {
+            background: linear-gradient(to right, #fdf4ff, #f5f3ff);
+            border: 1px solid #e9d5ff;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-style: italic;
+            color: #4c1d95;
+            display: none; /* Skryté ve výchozím stavu */
+        }
+        .ai-response-box.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -77,12 +104,40 @@
 
         <!-- DETAILNÍ STRÁNKA: Seznam vín nebo program akce -->
         <div id="detail" class="hidden">
-            <header class="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                <button id="back-button" class="bg-gray-800 text-white py-3 px-6 rounded-xl hover:bg-gray-700 transition-colors text-lg font-semibold shadow-lg mb-4 sm:mb-0">
-                    &larr; Zpět na přehled akcí
+            <header class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <button id="back-button" class="bg-gray-800 text-white py-2 px-5 rounded-xl hover:bg-gray-700 transition-colors text-lg font-semibold shadow-lg">
+                    &larr; Zpět na přehled
                 </button>
-                <h1 id="detail-title" class="text-4xl font-bold text-gray-900"></h1>
+                <h1 id="detail-title" class="text-3xl md:text-4xl font-bold text-gray-900 text-right flex-1"></h1>
             </header>
+
+            <!-- AI Generátor pozvánek -->
+            <div class="mb-10 bg-gradient-to-r from-purple-100 to-white p-6 rounded-xl border border-purple-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-purple-900 font-bold text-lg flex items-center gap-2">
+                        <span class="text-2xl">✨</span> Plánujete pozvat přátele?
+                    </h3>
+                    <p class="text-purple-700 text-sm">Nechte umělou inteligenci napsat originální pozvánku na tuto akci.</p>
+                </div>
+                <button id="generate-invite-btn" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all transform hover:scale-105 whitespace-nowrap">
+                    ✨ Vygenerovat pozvánku
+                </button>
+            </div>
+            
+            <!-- Místo pro zobrazení vygenerované pozvánky -->
+            <div id="invite-result-container" class="mb-8 hidden">
+                <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-purple-500 relative">
+                    <button onclick="this.parentElement.parentElement.classList.add('hidden')" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                    <h4 class="font-bold text-gray-800 mb-2">Návrh pozvánky od AI:</h4>
+                    <p id="invite-text" class="text-gray-700 italic leading-relaxed"></p>
+                    <button onclick="copyInvite()" class="mt-4 text-sm text-purple-700 font-semibold hover:text-purple-900 flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        Zkopírovat text
+                    </button>
+                </div>
+            </div>
             
             <!-- Kontejner pro informace o odrůdách (jen pro relevantní akce) -->
             <div id="variety-info-container" class="mb-8 hidden">
@@ -106,17 +161,29 @@
     </div>
 
     <script>
+        // API klíč pro Gemini (bude doplněn prostředím)
+        const apiKey = ""; 
+
         document.addEventListener('DOMContentLoaded', () => {
             // --- Data o degustacích ---
             let tastings = [
+                {
+                    id: 'traminy20260307', 
+                    date: '2026-03-07',
+                    displayDate: '7. března 2026 (16:30)',
+                    theme: 'Tramíny',
+                    description: 'Ponořte se do světa jedné z nejstarších a nejaromatičtějších odrůd. Čeká vás výběr těch nejlepších Tramínů červených a kořenitých.',
+                    wineCount: 8,
+                    image: 'tramin.png'
+                },
                 {
                     id: 'hibernalkerner20260109',
                     date: '2026-01-09',
                     displayDate: '9. ledna 2026',
                     theme: 'Odrůdy Hibernal a Kerner',
                     description: 'Večer věnovaný populárním odrůdám Hibernal a Kerner. Prozkoumáme jejich aromatický profil, od svěžích tónů až po plná vyzrálá vína.',
-                    wineCount: 7, // Aktualizovaný počet vín
-                    image: 'tramin.png'
+                    wineCount: 7,
+                    image: 'hibernal_kerner.png' 
                 },
                 {
                     id: 'kralovskykostostrava20251101', 
@@ -149,7 +216,7 @@
 
             // --- Detailní data o vínech ---
             const wineData = [
-                // DOPLNĚNÁ DATA PRO HIBERNAL & KERNER
+                // DATA PRO HIBERNAL & KERNER
                 { 
                     id: 'hibernalkerner20260109', 
                     wineId: 1, 
@@ -194,7 +261,6 @@
                     origin: 'Morava, Mikulovská', 
                     pairing: 'Mořské plody, výraznější úpravy ryb, kořeněná jídla' 
                 },
-                // NOVÉ VZORKY
                 { 
                     id: 'hibernalkerner20260109', 
                     wineId: 5, 
@@ -229,7 +295,7 @@
                     pairing: 'Kuřecí maso, kvalitní sýry' 
                 },
 
-                // PŮVODNÍ DATA PRO CUVÉE
+                // DATA PRO CUVÉE
                 { id: 'cuvee20250725', wineId: 1, winery: 'Vinařství Kohút', name: 'Cuvée "dámská jízda" 2023', classification: 'Moravské zemské víno', sweetness: 'Polosuché', alcohol: '12,5 %', origin: 'Morava, Česká republika', pairing: 'Těstoviny, drůbež, dušené maso' },
                 { id: 'cuvee20250725', wineId: 2, winery: 'Vinařství Procházka Valtice', name: 'Cuvée (Sauvignon & Cabernet Blanc)', classification: 'Moravské zemské víno', sweetness: 'Polosladké', alcohol: '12,0 %', origin: 'Morava, Česká republika (Valtice)', pairing: null },
                 { id: 'cuvee20250725', wineId: 3, winery: 'Vinařství Hraniční zámeček', name: 'Romantické cuvée', classification: 'Moravské zemské víno', sweetness: 'Polosladké', alcohol: '11,5 %', origin: 'Morava, Česká republika (Lednicko-valtický areál)', pairing: null },
@@ -284,12 +350,105 @@
             const detailTitle = document.getElementById('detail-title');
             const backButton = document.getElementById('back-button');
             const varietyInfoContainer = document.getElementById('variety-info-container');
+            const generateInviteBtn = document.getElementById('generate-invite-btn');
+            const inviteResultContainer = document.getElementById('invite-result-container');
+            const inviteText = document.getElementById('invite-text');
+
+            // --- GEMINI API FUNKCE ---
 
             /**
-             * Vypočítá zbývající dny do akce.
-             * @param {string} dateString Datum ve formátu YYYY-MM-DD
-             * @returns {string} Textový popis (např. 'Za 10 dní', 'Proběhlo')
+             * Zavolá Gemini API pro generování textu.
              */
+            async function callGemini(prompt) {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                
+                const data = {
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }]
+                };
+
+                // Exponenciální backoff pro retry (max 5 pokusů)
+                for (let i = 0; i < 5; i++) {
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+
+                        if (!response.ok) {
+                            if (response.status === 429) throw new Error('Too Many Requests');
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const result = await response.json();
+                        return result.candidates?.[0]?.content?.parts?.[0]?.text || "Omlouváme se, AI momentálně nemůže odpovědět.";
+                    } catch (error) {
+                        if (i === 4) return "Omlouváme se, došlo k chybě při komunikaci s AI službou.";
+                        const waitTime = Math.pow(2, i) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, waitTime));
+                    }
+                }
+            }
+
+            // Funkce pro generování párování jídla (AI Sommelier)
+            window.askSommelier = async function(btn, name, winery, sweetness, classification) {
+                const containerId = btn.dataset.target;
+                const resultContainer = document.getElementById(containerId);
+                const originalText = btn.innerHTML;
+                
+                // UI update: Načítání
+                btn.disabled = true;
+                btn.innerHTML = `✨ Přemýšlím...`;
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+                
+                const prompt = `Jsi zkušený a kreativní sommeliér. Doporuč konkrétní a lákavý pokrm k vínu: ${name} od ${winery} (${sweetness}, ${classification}). Vysvětli stručně (max 2-3 věty), proč se k sobě chutě hodí. Odpověz česky, přátelsky a profesionálně.`;
+
+                const responseText = await callGemini(prompt);
+                
+                // UI update: Zobrazení výsledku
+                resultContainer.innerHTML = `<strong>💡 Tip AI Sommeliéra:</strong> ${responseText}`;
+                resultContainer.classList.add('active');
+                
+                // Reset tlačítka
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            };
+
+            // Funkce pro generování pozvánky
+            let currentTastingForInvite = null;
+            
+            generateInviteBtn.addEventListener('click', async () => {
+                if (!currentTastingForInvite) return;
+                
+                const originalText = generateInviteBtn.innerHTML;
+                generateInviteBtn.disabled = true;
+                generateInviteBtn.innerHTML = `✨ Tvořím pozvánku...`;
+                inviteResultContainer.classList.add('hidden');
+                
+                const prompt = `Napiš krátkou, vtipnou a lákavou e-mailovou pozvánku (max 3-4 věty) pro členy klubu na degustaci vín s tématem: '${currentTastingForInvite.theme}'. Kdy: ${currentTastingForInvite.displayDate}. Popis akce: ${currentTastingForInvite.description}. Použij emotikony. Odpověz česky.`;
+                
+                const responseText = await callGemini(prompt);
+                
+                inviteText.innerText = responseText;
+                inviteResultContainer.classList.remove('hidden');
+                
+                generateInviteBtn.innerHTML = originalText;
+                generateInviteBtn.disabled = false;
+            });
+
+            // Pomocná funkce pro kopírování
+            window.copyInvite = function() {
+                const text = inviteText.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("Text pozvánky byl zkopírován do schránky!");
+                });
+            };
+
+            // --- KONEC GEMINI API FUNKCÍ ---
+
             function getTimeRemaining(dateString) {
                 const eventDate = new Date(dateString);
                 eventDate.setHours(0, 0, 0, 0);
@@ -298,7 +457,7 @@
                 const diffTime = eventDate - today;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 
-                if (diffDays < -3) return 'Proběhlo'; // Ukončeno před více než 3 dny
+                if (diffDays < -3) return 'Proběhlo'; 
                 if (diffDays <= 0) return 'Právě probíhá';
                 if (diffDays === 1) return 'Zítra!';
                 if (diffDays < 7) return `Za ${diffDays} dny`;
@@ -306,22 +465,19 @@
                 return `Za ${Math.floor(diffDays / 30)} měsíců`;
             }
 
-            /**
-             * Vykreslí karty s přehledem degustací na domovské stránce.
-             */
             function renderHomePage() {
                 tastingListContainer.innerHTML = '';
-                
-                // Setřídění akcí podle data sestupně (nejnovější první)
                 tastings.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 tastings.forEach(tasting => {
                     const dayInfo = getTimeRemaining(tasting.date);
+                    const firstTwoWords = tasting.theme.split(' ').slice(0, 2).join('+');
+                    
                     const card = `
                         <div class="tasting-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer" data-id="${tasting.id}">
                             <img src="${tasting.image}" alt="Obrázek k tématu ${tasting.theme}" 
                                  class="w-full h-52 object-cover" 
-                                 onerror="this.onerror=null;this.src='https://placehold.co/600x400/374151/ffffff?text=${tasting.theme.split(' ')[0]}';">
+                                 onerror="this.onerror=null;this.src='https://placehold.co/600x400/374151/ffffff?text=${firstTwoWords}';">
                             <div class="p-6">
                                 <p class="text-sm font-semibold mb-2 ${dayInfo.includes('Probíhá') || dayInfo.includes('Zítra') ? 'text-red-600' : 'text-gray-500'}">
                                     ${dayInfo} &middot; ${tasting.displayDate}
@@ -344,18 +500,15 @@
                 });
             }
 
-            /**
-             * Vykreslí detailní stránku pro vybranou degustaci.
-             * @param {string} tastingId ID vybrané degustace
-             */
             function showDetailPage(tastingId) {
                 const selectedTasting = tastings.find(t => t.id === tastingId);
                 if (!selectedTasting) return;
                 
+                currentTastingForInvite = selectedTasting; // Uložíme pro generování pozvánky
                 detailTitle.textContent = selectedTasting.theme;
                 wineListContainer.innerHTML = '';
+                inviteResultContainer.classList.add('hidden'); // Skrýt předchozí výsledek pozvánky
 
-                // Zobrazení sekce "O odrůdách" pouze pro relevantní akci
                 if (tastingId === 'hibernalkerner20260109') {
                     varietyInfoContainer.classList.remove('hidden');
                 } else {
@@ -365,14 +518,22 @@
                 const winesForTasting = wineData.filter(w => w.id === tastingId);
                 const detailsForEvent = eventDetails.find(e => e.id === tastingId);
 
-                // --- Vykreslení seznamu vín ---
                 if (winesForTasting.length > 0) {
                     winesForTasting.forEach((wine, index) => {
+                        const pairingBoxId = `pairing-box-${wine.id}-${wine.wineId}`;
                         const wineCardHTML = `
                             <div class="bg-white rounded-xl shadow-lg p-6 border-l-8 border-red-700">
-                                <h3 class="text-2xl font-extrabold text-gray-900 mb-3">
-                                    <span class="text-red-700">${index + 1}.</span> ${wine.name}
-                                </h3>
+                                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3">
+                                    <h3 class="text-2xl font-extrabold text-gray-900">
+                                        <span class="text-red-700">${index + 1}.</span> ${wine.name}
+                                    </h3>
+                                    <!-- Tlačítko pro AI Sommeliéra -->
+                                    <button class="mt-2 md:mt-0 text-sm bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold py-1.5 px-4 rounded-full transition-colors flex items-center gap-1"
+                                            data-target="${pairingBoxId}"
+                                            onclick="askSommelier(this, '${wine.name}', '${wine.winery}', '${wine.sweetness}', '${wine.classification}')">
+                                        ✨ Co k tomu jíst? (AI Tip)
+                                    </button>
+                                </div>
                                 <p class="text-lg text-gray-700 font-semibold mb-4">${wine.winery}</p>
                                 
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-6 text-sm">
@@ -387,11 +548,13 @@
                                     <p class="text-gray-500 font-medium">Poznámka / Doporučení</p>
                                     <p class="font-medium text-gray-800">${wine.pairing}</p>
                                 </div>` : ''}
+
+                                <!-- Kontejner pro odpověď AI -->
+                                <div id="${pairingBoxId}" class="ai-response-box text-sm mt-4"></div>
                             </div>`;
                         wineListContainer.innerHTML += wineCardHTML;
                     });
                 
-                // --- Vykreslení programu akce ---
                 } else if (detailsForEvent) {
                     detailsForEvent.schedule.forEach(day => {
                         if (day.day === 'Informace k pultové degustaci') {
