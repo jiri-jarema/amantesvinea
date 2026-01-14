@@ -19,12 +19,20 @@
         .variety-info { background-color: #fff7ed; border-left: 4px solid #ea580c; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #b91c1c; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Styl pro chybové hlášky */
+        #error-message { display: none; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
     <div id="app" class="container mx-auto p-4 md:p-12 max-w-6xl">
         
+        <!-- Chybový box -->
+        <div id="error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <strong class="font-bold">Chyba!</strong>
+            <span class="block sm:inline" id="error-text"></span>
+        </div>
+
         <!-- HLAVNÍ STRÁNKA -->
         <div id="home">
             <header class="text-center mb-16 pt-8">
@@ -48,8 +56,21 @@
 
             <div id="variety-info-container" class="mb-8 hidden"></div>
 
-            <!-- FORMULÁŘ -->
-            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8">
+            <!-- OVLÁDÁNÍ FORMULÁŘE (Tlačítko / Zpráva) -->
+            <div class="mb-6 flex justify-end">
+                <button id="toggle-add-wine-btn" class="hidden bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow transition flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Přidat vlastní vzorek
+                </button>
+                <p id="add-wine-closed-msg" class="hidden text-red-600 font-bold bg-red-50 border border-red-200 px-4 py-2 rounded-lg">
+                    ⚠️ Příjem vzorků do této degustace byl již ukončen.
+                </p>
+            </div>
+
+            <!-- FORMULÁŘ (Ve výchozím stavu skrytý) -->
+            <div id="add-wine-container" class="hidden bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8 animate-fade-in-down">
                 <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -101,25 +122,30 @@
     <!-- Firebase SDK Modular (Realtime Database verze) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        // Importujeme Realtime Database funkce
         import { getDatabase, ref, onValue, push, set, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
         // =================================================================
         // DŮLEŽITÉ: Zde vložte konfiguraci z vaší Firebase Konzole
         // =================================================================
-const firebaseConfig = {
-  apiKey: "AIzaSyAn6jNCHyJNo194jOPMrate3vQ-sBQdsrk",
-  authDomain: "amantesvinea.firebaseapp.com",
-  databaseURL: "https://amantesvinea-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "amantesvinea",
-  storageBucket: "amantesvinea.firebasestorage.app",
-  messagingSenderId: "314403202533",
-  appId: "1:314403202533:web:db9eb6416a8710a837bb0c"
-};
+        const firebaseConfig = {
+	  apiKey: "AIzaSyAn6jNCHyJNo194jOPMrate3vQ-sBQdsrk",
+	  authDomain: "amantesvinea.firebaseapp.com",
+	  databaseURL: "https://amantesvinea-default-rtdb.europe-west1.firebasedatabase.app",
+	  projectId: "amantesvinea",
+	  storageBucket: "amantesvinea.firebasestorage.app",
+	  messagingSenderId: "314403202533",
+	  appId: "1:314403202533:web:db9eb6416a8710a837bb0c"
+	};
         // =================================================================
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app); // Inicializace Realtime Database
+        let app, db;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getDatabase(app);
+        } catch (e) {
+            showError("Chyba inicializace Firebase. Zkontrolujte firebaseConfig v kódu. Detaily: " + e.message);
+        }
 
         let currentTastingId = null;
 
@@ -131,6 +157,61 @@ const firebaseConfig = {
         const varietyInfoContainer = document.getElementById('variety-info-container');
         const homeLoader = document.getElementById('home-loader');
         const wineLoader = document.getElementById('wine-loader');
+        const errorMsg = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+
+        // Nové elementy pro logiku formuláře
+        const toggleAddWineBtn = document.getElementById('toggle-add-wine-btn');
+        const addWineClosedMsg = document.getElementById('add-wine-closed-msg');
+        const addWineContainer = document.getElementById('add-wine-container');
+
+        function showError(msg) {
+            errorText.innerText = msg;
+            errorMsg.style.display = 'block';
+            console.error(msg);
+        }
+
+        // --- Logika pro zobrazení tlačítka ---
+        function isRegistrationOpen(dateString) {
+            // Datum akce (bez času, tedy půlnoc toho dne)
+            const eventDate = new Date(dateString);
+            eventDate.setHours(0, 0, 0, 0);
+
+            // Dnešní datum (bez času)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Podmínka: Tlačítko je aktivní pouze DO dne PŘED zahájením.
+            // Tedy: dnes musí být MENŠÍ než datum akce.
+            // Pokud je dnes 9.1. a akce je 9.1., už je pozdě (false).
+            // Pokud je dnes 8.1. a akce je 9.1., je to OK (true).
+            return today < eventDate;
+        }
+
+        // Přepínání viditelnosti formuláře
+        toggleAddWineBtn.addEventListener('click', () => {
+            if (addWineContainer.classList.contains('hidden')) {
+                addWineContainer.classList.remove('hidden');
+                toggleAddWineBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    Zavřít formulář
+                `;
+                toggleAddWineBtn.classList.replace('bg-green-600', 'bg-gray-500');
+                toggleAddWineBtn.classList.replace('hover:bg-green-700', 'hover:bg-gray-600');
+            } else {
+                addWineContainer.classList.add('hidden');
+                toggleAddWineBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Přidat vlastní vzorek
+                `;
+                toggleAddWineBtn.classList.replace('bg-gray-500', 'bg-green-600');
+                toggleAddWineBtn.classList.replace('hover:bg-gray-600', 'hover:bg-green-700');
+            }
+        });
 
         // --- 1. Načítání akcí (Realtime DB) ---
         function loadTastings() {
@@ -142,12 +223,11 @@ const firebaseConfig = {
                 const data = snapshot.val();
                 
                 if (!data) {
-                    tastingListContainer.innerHTML = '<p class="text-center p-4">Žádné akce nenalezeny. Importujte data.</p>';
+                    tastingListContainer.innerHTML = '<p class="text-center p-4">Žádná data. Pokud jste data nahráli, zkontrolujte Pravidla (Rules) v konzoli.</p>';
                     homeLoader.classList.add('hidden');
                     return;
                 }
 
-                // Převod objektu na pole
                 const tastings = Object.keys(data).map(key => ({
                     id: key,
                     ...data[key]
@@ -182,14 +262,43 @@ const firebaseConfig = {
                     tastingListContainer.appendChild(card);
                 });
                 homeLoader.classList.add('hidden');
+            }, (error) => {
+                let msg = "Chyba při načítání dat: " + error.message;
+                if (error.code === 'PERMISSION_DENIED') {
+                    msg = "Přístup odepřen! Nemáte oprávnění číst z databáze. Nastavte v konzoli Rules na '.read': true.";
+                }
+                showError(msg);
+                homeLoader.classList.add('hidden');
             });
         }
 
-        // --- 2. Detail Akce a Načítání Vín (Realtime DB) ---
+        // --- 2. Detail Akce ---
         window.showDetailPage = function(tasting) {
             currentTastingId = tasting.id;
             detailTitle.textContent = tasting.theme;
+            errorMsg.style.display = 'none';
             
+            // Logika pro zobrazení/skrytí formuláře na základě data
+            addWineContainer.classList.add('hidden'); // Vždy resetujeme do skrytého stavu
+            if (isRegistrationOpen(tasting.date)) {
+                toggleAddWineBtn.classList.remove('hidden');
+                addWineClosedMsg.classList.add('hidden');
+                // Reset textu tlačítka
+                toggleAddWineBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Přidat vlastní vzorek
+                `;
+                toggleAddWineBtn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+                toggleAddWineBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+
+            } else {
+                toggleAddWineBtn.classList.add('hidden');
+                addWineClosedMsg.classList.remove('hidden');
+            }
+
+            // Info o odrůdách
             varietyInfoContainer.innerHTML = '';
             if (tasting.varietyInfo) {
                 varietyInfoContainer.classList.remove('hidden');
@@ -215,7 +324,6 @@ const firebaseConfig = {
             wineListContainer.innerHTML = '';
             wineLoader.classList.remove('hidden');
 
-            // Dotaz na vína pro konkrétní akci
             const winesRef = query(ref(db, 'wines'), orderByChild('tastingId'), equalTo(currentTastingId));
 
             onValue(winesRef, (snapshot) => {
@@ -228,12 +336,11 @@ const firebaseConfig = {
                     return;
                 }
 
-                // Převod na pole a seřazení
                 const wines = Object.keys(data).map(key => ({
                     id: key,
                     ...data[key]
                 }));
-                // Realtime DB neumí řadit podle více polí najednou jednoduše, seřadíme v JS
+                
                 wines.sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
 
                 let index = 1;
@@ -263,10 +370,13 @@ const firebaseConfig = {
                     index++;
                 });
                 wineLoader.classList.add('hidden');
+            }, (error) => {
+                 showError("Chyba při načítání vín: " + error.message);
+                 wineLoader.classList.add('hidden');
             });
         }
 
-        // --- 3. Přidávání nového vína (Realtime DB) ---
+        // --- 3. Přidávání nového vína ---
         document.getElementById('add-wine-form').addEventListener('submit', (e) => {
             e.preventDefault();
             if (!currentTastingId) return;
@@ -288,16 +398,24 @@ const firebaseConfig = {
                 createdAt: new Date().toISOString()
             };
 
-            // V RTDB používáme push() pro vytvoření nového ID a set() pro uložení
             const newWineRef = push(ref(db, 'wines'));
             set(newWineRef, newWine)
                 .then(() => {
                     e.target.reset();
                     alert("Víno úspěšně přidáno!");
+                    // Po úspěšném přidání formulář zase zavřeme
+                    addWineContainer.classList.add('hidden');
+                    toggleAddWineBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Přidat vlastní vzorek
+                    `;
+                    toggleAddWineBtn.classList.replace('bg-gray-500', 'bg-green-600');
+                    toggleAddWineBtn.classList.replace('hover:bg-gray-600', 'hover:bg-green-700');
                 })
                 .catch((error) => {
-                    console.error("Chyba:", error);
-                    alert("Chyba při ukládání vína.");
+                    showError("Chyba při ukládání: " + error.message);
                 })
                 .finally(() => {
                     submitBtn.innerText = originalText;
@@ -308,6 +426,7 @@ const firebaseConfig = {
         document.getElementById('back-button').addEventListener('click', () => {
             detailPage.classList.add('hidden');
             homePage.classList.remove('hidden');
+            errorMsg.style.display = 'none';
             currentTastingId = null;
         });
 
