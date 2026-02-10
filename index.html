@@ -19,44 +19,33 @@
         .variety-info { background-color: #fff7ed; border-left: 4px solid #ea580c; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #b91c1c; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Styl pro chybové hlášky */
         #error-message { display: none; }
-        /* Animace skenování */
-        .scanning-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 50; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; color: white;
-        }
-        .scanner-line {
-            width: 80%; height: 2px; background: #ef4444;
-            box-shadow: 0 0 10px #ef4444;
-            animation: scan 2s infinite linear;
-        }
-        @keyframes scan {
-            0% { transform: translateY(-100px); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateY(100px); opacity: 0; }
-        }
+
+        /* Styly pro AI skenování */
+        #scan-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .scan-scanner { width: 100%; max-width: 300px; height: 200px; border: 2px solid #ef4444; position: relative; overflow: hidden; border-radius: 12px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+        .scan-line { width: 100%; height: 4px; background: #ef4444; position: absolute; top: 0; animation: scanMove 2s infinite ease-in-out; box-shadow: 0 0 10px #ef4444; }
+        @keyframes scanMove { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
+    <div id="scan-overlay" class="hidden">
+        <div class="text-3xl mb-8 animate-pulse">🤖 Analyzuji etiketu...</div>
+        <div class="scan-scanner mb-8">
+            <div class="scan-line"></div>
+        </div>
+        <p class="text-gray-300">Prosím čekejte, extrahuji data a dohledávám informace.</p>
+    </div>
+
     <div id="app" class="container mx-auto p-4 md:p-12 max-w-6xl">
         
-        <!-- Scanning Overlay -->
-        <div id="scanning-overlay" class="scanning-overlay hidden">
-            <div class="text-4xl mb-4">📷</div>
-            <div class="text-xl font-bold mb-2">Analyzuji etiketu...</div>
-            <div class="scanner-line"></div>
-            <p class="text-sm text-gray-300 mt-4">Hledám název, ročník a vinaře</p>
-        </div>
-
-        <!-- Chybový box -->
         <div id="error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
             <strong class="font-bold">Chyba!</strong>
             <span class="block sm:inline" id="error-text"></span>
         </div>
 
-        <!-- HLAVNÍ STRÁNKA -->
         <div id="home">
             <header class="text-center mb-16 pt-8">
                 <img src="amantes_vinea_logo.png" alt="Logo klubu Amantes Vinea" class="h-28 mx-auto mb-6 drop-shadow-lg" onerror="this.onerror=null;this.src='https://placehold.co/250x110/374151/ffffff?text=Amantes+Vinea';">
@@ -68,7 +57,6 @@
             <main id="tasting-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10"></main>
         </div>
 
-        <!-- DETAILNÍ STRÁNKA -->
         <div id="detail" class="hidden">
             <header class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <button id="back-button" class="bg-gray-800 text-white py-2 px-5 rounded-xl hover:bg-gray-700 transition-colors text-lg font-semibold shadow-lg">
@@ -79,7 +67,6 @@
 
             <div id="variety-info-container" class="mb-8 hidden"></div>
 
-            <!-- OVLÁDÁNÍ FORMULÁŘE (Tlačítko / Zpráva) -->
             <div class="mb-6 flex justify-end">
                 <button id="toggle-add-wine-btn" class="hidden bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow transition flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -92,24 +79,22 @@
                 </p>
             </div>
 
-            <!-- FORMULÁŘ (Ve výchozím stavu skrytý) -->
             <div id="add-wine-container" class="hidden bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8 animate-fade-in-down">
-                <div class="flex justify-between items-center mb-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <h3 class="text-xl font-bold text-gray-900 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
                         Přidat víno do této degustace
                     </h3>
-                    
-                    <!-- AI Camera Button -->
-                    <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded-lg shadow flex items-center transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+
+                    <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow flex items-center transition transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         Načíst z fotky etikety
-                        <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
+                        <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
                     </label>
                 </div>
 
@@ -125,6 +110,9 @@
                         <option value="Kabinetní víno">Kabinetní víno</option>
                         <option value="Jakostní víno">Jakostní víno</option>
                         <option value="VOC">VOC</option>
+                        <option value="Likérové víno">Likérové víno</option>
+                        <option value="Slámové víno">Slámové víno</option>
+                        <option value="Ledové víno">Ledové víno</option>
                     </select>
 
                     <select id="input-sweetness" class="border p-3 rounded-lg w-full transition-colors focus:ring-2 focus:ring-red-500 outline-none">
@@ -155,11 +143,20 @@
         </div>
     </div>
 
-    <!-- Firebase SDK Modular (Realtime Database verze) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getDatabase, ref, onValue, push, set, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
+        // =================================================================
+        // DŮLEŽITÉ: Vložte VÁŠ OpenAI API Key
+        // BEZPEČNOSTNÍ VAROVÁNÍ: Tento klíč bude viditelný v kódu stránky.
+        // Nastavte si na OpenAI limity útraty (hard/soft limits).
+        // =================================================================
+        const OPENAI_API_KEY = "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"; 
+        // =================================================================
+
+
+        // KONFIGURACE FIREBASE (Zůstává stejná jako předtím)
         const firebaseConfig = {
             apiKey: "AIzaSyAn6jNCHyJNo194jOPMrate3vQ-sBQdsrk",
             authDomain: "amantesvinea.firebaseapp.com",
@@ -169,8 +166,6 @@
             messagingSenderId: "314403202533",
             appId: "1:314403202533:web:db9eb6416a8710a837bb0c"
         };
-
-        const apiKey = "AIzaSyA8mts0VAOb6R576tnXLWjFw4TiQVegzUY"; // API klíč pro Gemini bude doplněn prostředím
 
         let app, db;
 
@@ -197,108 +192,157 @@
         const toggleAddWineBtn = document.getElementById('toggle-add-wine-btn');
         const addWineClosedMsg = document.getElementById('add-wine-closed-msg');
         const addWineContainer = document.getElementById('add-wine-container');
-        const cameraInput = document.getElementById('camera-input');
-        const scanningOverlay = document.getElementById('scanning-overlay');
+        
+        // Nové elementy pro AI skenování
+        const cameraInput = document.getElementById('cameraInput');
+        const scanOverlay = document.getElementById('scan-overlay');
+
 
         function showError(msg) {
             errorText.innerText = msg;
             errorMsg.style.display = 'block';
             console.error(msg);
-            // Po chvíli schovat
+            // Po 5 sekundách chybu schováme
             setTimeout(() => { errorMsg.style.display = 'none'; }, 5000);
         }
 
-        // --- GEMINI VISION LOGIKA ---
-        cameraInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0];
+        // --- LOGIKA PRO AI SKENOVÁNÍ ETIKET ---
+
+        cameraInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
             if (!file) return;
 
-            scanningOverlay.classList.remove('hidden');
+            if (OPENAI_API_KEY === "VASE_OPENAI_KLIC_ZDE") {
+                alert("Chyba: Není nastaven OpenAI API klíč v kódu aplikace.");
+                return;
+            }
+
+            // Zobrazit overlay
+            scanOverlay.classList.remove('hidden');
 
             try {
-                // Přečtení souboru jako Base64
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onloadend = async function() {
-                    const base64Data = reader.result.split(',')[1]; // Odstranění "data:image/jpeg;base64,"
-                    const mimeType = file.type;
-
-                    const prompt = `Analyzuj tuto etiketu vína a extrahuj následující údaje ve formátu JSON: 
-                    { 
-                        "name": "Celý název vína i s ročníkem", 
-                        "winery": "Název vinařství", 
-                        "classification": "Jedna z: Moravské zemské víno, Pozdní sběr, Výběr z hroznů, Kabinetní víno, Jakostní víno, VOC", 
-                        "sweetness": "Jedna z: Suché, Polosuché, Polosladké, Sladké", 
-                        "alcohol": "Obsah alkoholu v %", 
-                        "origin": "Oblast, podoblast nebo obec" 
-                    }. 
-                    Pokud údaj na etiketě není jasně viditelný, nechej pole prázdné. Odpověz POUZE čistým JSONem bez formátování.`;
-
-                    // Volání Gemini API
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                    
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [
-                                    { text: prompt },
-                                    { inline_data: { mime_type: mimeType, data: base64Data } }
-                                ]
-                            }]
-                        })
-                    });
-
-                    if (!response.ok) throw new Error(`API Error: ${response.status}`);
-
-                    const result = await response.json();
-                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                    
-                    if (text) {
-                        // Čištění JSONu (pokud by Gemini přidal markdown ```json)
-                        const cleanJson = text.replace(/```json|```/g, '').trim();
-                        const data = JSON.parse(cleanJson);
-                        
-                        // Vyplnění formuláře
-                        if (data.name) document.getElementById('input-name').value = data.name;
-                        if (data.winery) document.getElementById('input-winery').value = data.winery;
-                        if (data.alcohol) document.getElementById('input-alcohol').value = data.alcohol;
-                        if (data.origin) document.getElementById('input-origin').value = data.origin;
-                        
-                        // Pokus o nastavení selectů (musí přesně sedět hodnota)
-                        setSelectValue('input-classification', data.classification);
-                        setSelectValue('input-sweetness', data.sweetness);
-
-                        // Vizuální feedback úspěchu
-                        document.getElementById('input-name').classList.add('bg-green-50');
-                        setTimeout(() => document.getElementById('input-name').classList.remove('bg-green-50'), 2000);
-                    } else {
-                        throw new Error("Nepodařilo se rozpoznat text.");
-                    }
-                };
+                const base64Image = await toBase64(file);
+                const wineData = await analyzeLabelWithAI(base64Image);
+                populateForm(wineData);
+                alert("Etiketa úspěšně analyzována! Zkontrolujte prosím údaje.");
             } catch (error) {
-                showError("Nepodařilo se analyzovat etiketu: " + error.message);
+                showError("Chyba při analýze etikety: " + error.message);
             } finally {
-                scanningOverlay.classList.add('hidden');
-                cameraInput.value = ''; // Reset inputu
+                // Skrýt overlay a resetovat input
+                scanOverlay.classList.add('hidden');
+                cameraInput.value = '';
             }
         });
 
-        function setSelectValue(id, value) {
-            const select = document.getElementById(id);
-            if (!value) return;
-            // Zkusíme najít option, který obsahuje daný text (case insensitive)
+        // Pomocná funkce pro převod souboru na Base64
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]); // Odstraníme prefix "data:image/..."
+            reader.onerror = error => reject(error);
+        });
+
+        // Funkce pro volání OpenAI API
+        async function analyzeLabelWithAI(base64Image) {
+            const endpoint = 'https://api.openai.com/v1/chat/completions';
+            
+            // Prompt pro AI - instruujeme ji, co má hledat a v jakém formátu
+            const promptText = `
+            Jsi expert na víno. Analyzuj přiložený obrázek vinné etikety. 
+            Extrahuj z něj co nejpřesněji následující údaje a pokud některé chybí, pokus se je doplnit na základě svých znalostí o daném vinařství nebo odrůdě (např. oblast, pravděpodobný přívlastek).
+            
+            Vrať POUZE čistý JSON objekt (žádný markdown, žádný další text okolo) s těmito klíči:
+            - "name": Plný název vína včetně odrůdy a ročníku (např. "Pálava 2023").
+            - "winery": Název vinařství.
+            - "classification": Pokus se určit jednu z těchto hodnot: "Moravské zemské víno", "Pozdní sběr", "Výběr z hroznů", "Kabinetní víno", "Jakostní víno", "VOC", "Likérové víno", "Slámové víno", "Ledové víno". Pokud si nejsi jistý, nech prázdné.
+            - "sweetness": Pokus se určit cukernatost: "Suché", "Polosuché", "Polosladké", "Sladké". Pokud není uvedeno, zkus odhadnout dle odrůdy/typu, jinak nech prázdné.
+            - "alcohol": Obsah alkoholu (např. "12,5 %").
+            - "origin": Vinařská oblast, podoblast nebo obec (např. "Morava, Mikulovská, Pavlov").
+            - "pairing": Stručný tip na párování s jídlem (max 1 věta).
+            `;
+
+            const payload = {
+                model: "gpt-4o", // Používáme nejnovější model s vision schopnostmi
+                messages: [
+                    {
+                        role: "user",
+                        content: [
+                            { type: "text", text: promptText },
+                            { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Image}` } }
+                        ]
+                    }
+                ],
+                max_tokens: 500,
+                temperature: 0.1 // Nízká teplota pro faktičtější odpovědi
+            };
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error?.message || 'Chyba při komunikaci s AI API');
+            }
+
+            const data = await response.json();
+            const content = data.choices[0].message.content;
+            
+            // Očištění odpovědi, pokud by AI přidala markdown bloky ```json ... ```
+            const cleanedContent = content.replace(/```json/g, '').replace(/```/g, '').trim();
+            
+            try {
+                return JSON.parse(cleanedContent);
+            } catch (e) {
+                console.error("Chyba parsování JSON z AI:", cleanedContent);
+                throw new Error("AI vrátila data ve špatném formátu. Zkuste fotku vyfotit lépe.");
+            }
+        }
+
+        // Funkce pro naplnění formuláře získanými daty
+        function populateForm(data) {
+            if (data.name) document.getElementById('input-name').value = data.name;
+            if (data.winery) document.getElementById('input-winery').value = data.winery;
+            if (data.alcohol) document.getElementById('input-alcohol').value = data.alcohol;
+            if (data.origin) document.getElementById('input-origin').value = data.origin;
+            if (data.pairing) document.getElementById('input-pairing').value = data.pairing;
+
+            // Pro selectboxy musíme najít správnou option
+            if (data.classification) setSelectboxValue('input-classification', data.classification);
+            if (data.sweetness) setSelectboxValue('input-sweetness', data.sweetness);
+
+            // Vizuální efekt - zvýraznění, že se něco stalo
+            addWineContainer.classList.add('ring-2', 'ring-green-500');
+            setTimeout(() => addWineContainer.classList.remove('ring-2', 'ring-green-500'), 2000);
+        }
+
+        // Pomocná funkce pro nastavení hodnoty selectboxu (pokud existuje)
+        function setSelectboxValue(selectId, valueToSelect) {
+            const select = document.getElementById(selectId);
+            if (!select || !valueToSelect) return;
+            
+            // Normalizace pro porovnání (malá písmena)
+            const normalizedValue = valueToSelect.toLowerCase().trim();
+
             for (let i = 0; i < select.options.length; i++) {
-                if (select.options[i].value.toLowerCase() === value.toLowerCase()) {
+                if (select.options[i].value.toLowerCase().trim() === normalizedValue) {
                     select.selectedIndex = i;
                     return;
                 }
             }
+            // Pokud AI vrátí něco, co v seznamu nemáme, můžeme to zapsat třeba do poznámky (volitelné)
+            // console.warn(`Hodnota '${valueToSelect}' pro ${selectId} nebyla nalezena v seznamu.`);
         }
 
-        // --- Zbytek logiky aplikace ---
+        // -----------------------------------------
 
+
+        // --- Logika pro zobrazení tlačítka ---
         function isRegistrationOpen(dateString) {
             const eventDate = new Date(dateString);
             eventDate.setHours(0, 0, 0, 0);
@@ -307,20 +351,32 @@
             return today < eventDate;
         }
 
+        // Přepínání viditelnosti formuláře
         toggleAddWineBtn.addEventListener('click', () => {
             if (addWineContainer.classList.contains('hidden')) {
                 addWineContainer.classList.remove('hidden');
-                toggleAddWineBtn.innerHTML = `Zavřít formulář`; // Zjednodušeno pro přehlednost
+                toggleAddWineBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    Zavřít formulář
+                `;
                 toggleAddWineBtn.classList.replace('bg-green-600', 'bg-gray-500');
                 toggleAddWineBtn.classList.replace('hover:bg-green-700', 'hover:bg-gray-600');
             } else {
                 addWineContainer.classList.add('hidden');
-                toggleAddWineBtn.innerHTML = `Přidat vlastní vzorek`;
+                toggleAddWineBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Přidat vlastní vzorek
+                `;
                 toggleAddWineBtn.classList.replace('bg-gray-500', 'bg-green-600');
                 toggleAddWineBtn.classList.replace('hover:bg-gray-600', 'hover:bg-green-700');
             }
         });
 
+        // --- 1. Načítání akcí (Realtime DB) ---
         function loadTastings() {
             homeLoader.classList.remove('hidden');
             const tastingsRef = ref(db, 'tastings');
@@ -330,23 +386,29 @@
                 const data = snapshot.val();
                 
                 if (!data) {
-                    tastingListContainer.innerHTML = '<p class="text-center p-4">Žádná data.</p>';
+                    tastingListContainer.innerHTML = '<p class="text-center p-4">Žádná data. Pokud jste data nahráli, zkontrolujte Pravidla (Rules) v konzoli.</p>';
                     homeLoader.classList.add('hidden');
                     return;
                 }
 
-                const tastings = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+                const tastings = Object.keys(data).map(key => ({
+                    id: key,
+                    ...data[key]
+                }));
+
                 tastings.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 tastings.forEach(tasting => {
                     const dayInfo = getTimeRemaining(tasting.date);
                     const firstTwoWords = tasting.theme.split(' ').slice(0, 2).join('+');
+                    
                     const card = document.createElement('div');
                     card.className = "tasting-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer";
                     card.onclick = () => showDetailPage(tasting);
                     card.innerHTML = `
-                        <img src="${tasting.image}" alt="${tasting.theme}" class="w-full h-52 object-cover" 
-                             onerror="this.onerror=null;this.src='[https://placehold.co/600x400/374151/ffffff?text=$](https://placehold.co/600x400/374151/ffffff?text=$){firstTwoWords}';">
+                        <img src="${tasting.image}" alt="${tasting.theme}" 
+                                class="w-full h-52 object-cover" 
+                                onerror="this.onerror=null;this.src='https://placehold.co/600x400/374151/ffffff?text=${firstTwoWords}';">
                         <div class="p-6">
                             <p class="text-sm font-semibold mb-2 ${dayInfo.includes('Probíhá') || dayInfo.includes('Zítra') ? 'text-red-600' : 'text-gray-500'}">
                                 ${dayInfo} &middot; ${tasting.displayDate}
@@ -355,7 +417,9 @@
                             <p class="text-gray-600 mb-5">${tasting.description}</p>
                             <div class="flex justify-between items-center text-sm font-medium border-t pt-4">
                                 <span class="text-gray-500">Otevřít degustaci</span>
-                                <span class="text-red-700 font-bold hover:text-red-900 transition-colors">&rarr;</span>
+                                <span class="text-red-700 font-bold hover:text-red-900 transition-colors">
+                                    &rarr;
+                                </span>
                             </div>
                         </div>`;
                     tastingListContainer.appendChild(card);
@@ -363,35 +427,48 @@
                 homeLoader.classList.add('hidden');
             }, (error) => {
                 let msg = "Chyba při načítání dat: " + error.message;
-                if (error.code === 'PERMISSION_DENIED') msg = "Přístup odepřen! Nastavte pravidla v konzoli.";
+                if (error.code === 'PERMISSION_DENIED') {
+                    msg = "Přístup odepřen! Nemáte oprávnění číst z databáze. Nastavte v konzoli Rules na '.read': true.";
+                }
                 showError(msg);
                 homeLoader.classList.add('hidden');
             });
         }
 
+        // --- 2. Detail Akce ---
         window.showDetailPage = function(tasting) {
             currentTastingId = tasting.id;
             detailTitle.textContent = tasting.theme;
             errorMsg.style.display = 'none';
             
-            addWineContainer.classList.add('hidden');
+            // Logika pro zobrazení/skrytí formuláře na základě data
+            addWineContainer.classList.add('hidden'); // Vždy resetujeme do skrytého stavu
             if (isRegistrationOpen(tasting.date)) {
                 toggleAddWineBtn.classList.remove('hidden');
                 addWineClosedMsg.classList.add('hidden');
-                toggleAddWineBtn.innerText = "Přidat vlastní vzorek";
+                // Reset textu tlačítka
+                toggleAddWineBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Přidat vlastní vzorek
+                `;
                 toggleAddWineBtn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
                 toggleAddWineBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+
             } else {
                 toggleAddWineBtn.classList.add('hidden');
                 addWineClosedMsg.classList.remove('hidden');
             }
 
+            // Info o odrůdách
             varietyInfoContainer.innerHTML = '';
             if (tasting.varietyInfo) {
                 varietyInfoContainer.classList.remove('hidden');
                 let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">`;
                 tasting.varietyInfo.forEach(info => {
-                    html += `<div class="variety-info p-6 rounded-lg shadow-sm">
+                    html += `
+                    <div class="variety-info p-6 rounded-lg shadow-sm">
                         <h3 class="text-xl font-bold text-gray-900 mb-2">${info.title}</h3>
                         <p class="text-sm text-gray-700 mb-2"><strong>Původ:</strong> ${info.origin}</p>
                         <p class="text-sm text-gray-700"><strong>Charakteristika:</strong> ${info.characteristics}</p>
@@ -422,7 +499,11 @@
                     return;
                 }
 
-                const wines = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+                const wines = Object.keys(data).map(key => ({
+                    id: key,
+                    ...data[key]
+                }));
+                
                 wines.sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
 
                 let index = 1;
@@ -430,15 +511,24 @@
                     const wineCard = document.createElement('div');
                     wineCard.className = "bg-white rounded-xl shadow-lg p-6 border-l-8 border-red-700 relative group";
                     wineCard.innerHTML = `
-                        <h3 class="text-2xl font-extrabold text-gray-900 mb-3"><span class="text-red-700">${index}.</span> ${wine.name}</h3>
+                        <h3 class="text-2xl font-extrabold text-gray-900 mb-3">
+                            <span class="text-red-700">${index}.</span> ${wine.name}
+                        </h3>
                         <p class="text-lg text-gray-700 font-semibold mb-4">${wine.winery}</p>
+                        
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-6 text-sm">
                             <div><p class="text-gray-500">Klasifikace</p><p class="font-bold text-gray-800">${wine.classification || '-'}</p></div>
                             <div><p class="text-gray-500">Cukernatost</p><p class="font-bold text-gray-800">${wine.sweetness || '-'}</p></div>
                             <div><p class="text-gray-500">Alkohol</p><p class="font-bold text-gray-800">${wine.alcohol || '-'}</p></div>
                             <div class="md:col-span-1"><p class="text-gray-500">Původ</p><p class="font-bold text-gray-800">${wine.origin || '-'}</p></div>
                         </div>
-                        ${wine.pairing ? `<div class="mt-6 p-4 bg-gray-50 rounded-lg border-l-4 border-gray-300"><p class="text-gray-500 font-medium">Poznámka / Párování</p><p class="font-medium text-gray-800">${wine.pairing}</p></div>` : ''}`;
+                        
+                        ${wine.pairing ? `
+                        <div class="mt-6 p-4 bg-gray-50 rounded-lg border-l-4 border-gray-300">
+                            <p class="text-gray-500 font-medium">Poznámka / Párování</p>
+                            <p class="font-medium text-gray-800">${wine.pairing}</p>
+                        </div>` : ''}
+                    `;
                     wineListContainer.appendChild(wineCard);
                     index++;
                 });
@@ -449,6 +539,7 @@
             });
         }
 
+        // --- 3. Přidávání nového vína ---
         document.getElementById('add-wine-form').addEventListener('submit', (e) => {
             e.preventDefault();
             if (!currentTastingId) return;
@@ -475,8 +566,14 @@
                 .then(() => {
                     e.target.reset();
                     alert("Víno úspěšně přidáno!");
+                    // Po úspěšném přidání formulář zase zavřeme
                     addWineContainer.classList.add('hidden');
-                    toggleAddWineBtn.innerHTML = `Přidat vlastní vzorek`;
+                    toggleAddWineBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Přidat vlastní vzorek
+                    `;
                     toggleAddWineBtn.classList.replace('bg-gray-500', 'bg-green-600');
                     toggleAddWineBtn.classList.replace('hover:bg-gray-600', 'hover:bg-green-700');
                 })
@@ -512,7 +609,9 @@
             return `Za ${Math.floor(diffDays / 30)} měsíců`;
         }
 
+        // Spuštění
         loadTastings();
+
     </script>
 </body>
 </html>
