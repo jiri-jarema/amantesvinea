@@ -28,6 +28,11 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: white; backdrop-filter: blur(5px);
         }
+        /* DŮLEŽITÁ OPRAVA: Zajistí, že třída .hidden opravdu skryje overlay */
+        #scan-overlay.hidden {
+            display: none !important;
+        }
+
         .scan-scanner {
             width: 80%; max-width: 300px; height: 200px;
             border: 2px solid #ef4444; border-radius: 12px;
@@ -180,7 +185,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getDatabase, ref, onValue, push, set, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
-        // Konfigurace Firebase (vložena vaše)
+        // Konfigurace Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAn6jNCHyJNo194jOPMrate3vQ-sBQdsrk",
             authDomain: "amantesvinea.firebaseapp.com",
