@@ -78,8 +78,9 @@
             </div>
 
             <div id="add-wine-container" class="hidden bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8">
-                <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Nové víno</h3>
+                <h3 id="wine-form-title" class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Nové víno</h3>
                 <form id="add-wine-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="hidden" id="wine-id">
                     <input type="text" id="input-name" placeholder="Název vína (např. Kerner 2024)" class="border p-3 rounded-lg w-full" required>
                     <input type="text" id="input-winery" placeholder="Vinařství" class="border p-3 rounded-lg w-full" required>
                     
@@ -105,9 +106,12 @@
                         <textarea id="input-pairing" placeholder="Párování s jídlem nebo poznámka" class="border p-3 rounded-lg w-full h-20"></textarea>
                     </div>
 
-                    <div class="md:col-span-2">
-                        <button type="submit" class="bg-red-700 text-white font-bold py-3 px-6 rounded-lg w-full hover:bg-red-800 shadow-md">
+                    <div class="md:col-span-2 flex flex-col sm:flex-row gap-3">
+                        <button type="submit" class="flex-grow bg-red-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-800 shadow-md transition">
                             Uložit víno do databáze
+                        </button>
+                        <button type="button" id="cancel-wine-edit-btn" class="hidden sm:w-1/3 bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 shadow-sm transition">
+                            Zrušit úpravu
                         </button>
                     </div>
                 </form>
@@ -189,7 +193,6 @@
         import { getDatabase, ref, onValue, push, set, update, remove, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
-        // Konfigurace Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAn6jNCHyJNo194jOPMrate3vQ-sBQdsrk",
             authDomain: "amantesvinea.firebaseapp.com",
@@ -205,7 +208,6 @@
         const auth = getAuth(app);
         const googleProvider = new GoogleAuthProvider();
 
-        // Proměnné
         let currentTastingId = null;
         let globalTastings = [];
         let currentUser = null; 
@@ -255,7 +257,6 @@
                 navBtn.textContent = "Přihlášení pro členy";
             }
 
-            // Pokud jsme zrovna na detailu akce a změní se stav přihlášení, chceme detail překreslit (např. aby se objevila tlačítka Smazat)
             if (currentTastingId && !views.detail.classList.contains('hidden')) {
                 const currentTasting = globalTastings.find(t => t.id === currentTastingId);
                 if (currentTasting) showDetailPage(currentTasting);
@@ -360,11 +361,10 @@
             document.getElementById('detail-title').textContent = tasting.theme;
             switchView('detail');
             
-            // Formulář Vína
+            // Formulář Vína - Reset
+            resetWineForm();
             const btnAdd = document.getElementById('toggle-add-wine-btn');
             const msgClosed = document.getElementById('add-wine-closed-msg');
-            document.getElementById('add-wine-container').classList.add('hidden');
-            btnAdd.innerHTML = "Přidat vzorek";
             
             if (isRegistrationOpen(tasting.date)) {
                 btnAdd.classList.remove('hidden'); msgClosed.classList.add('hidden');
@@ -412,12 +412,16 @@
                     
                     const godfatherBadge = wine.godfather ? `<div class="absolute top-4 right-4 bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full border border-yellow-200">Kmotr vzorku: ${wine.godfather}</div>` : '';
 
-                    // Modul pro smazání (Zobrazí se pouze přihlášeným uživatelům)
-                    const deleteBtnHtml = currentUser ? `
-                        <div class="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                    // Modul pro editaci a smazání
+                    const actionsHtml = currentUser ? `
+                        <div class="mt-4 pt-4 border-t border-gray-100 flex justify-end gap-4">
+                            <button class="text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center transition edit-wine-btn" data-id="${wine.id}">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                Upravit
+                            </button>
                             <button class="text-red-500 hover:text-red-700 text-sm font-semibold flex items-center transition delete-wine-btn" data-id="${wine.id}">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                Smazat vzorek
+                                Smazat
                             </button>
                         </div>
                     ` : '';
@@ -433,9 +437,18 @@
                             <div><p class="text-gray-400 text-xs uppercase tracking-wide">Původ</p><p class="font-bold text-gray-800">${wine.origin || '-'}</p></div>
                         </div>
                         ${wine.pairing ? `<div class="mt-4"><p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Poznámka:</p><p class="text-sm font-medium text-gray-700">${wine.pairing}</p></div>` : ''}
-                        ${deleteBtnHtml}
+                        ${actionsHtml}
                     `;
                     wineList.appendChild(wineCard);
+                });
+
+                // Připojení logiky na editaci vzorku
+                document.querySelectorAll('.edit-wine-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const wineId = e.currentTarget.dataset.id;
+                        const wineToEdit = wines.find(w => w.id === wineId);
+                        if(wineToEdit) loadWineIntoForm(wineToEdit);
+                    });
                 });
 
                 // Připojení logiky na smazání vzorku
@@ -478,10 +491,46 @@
             container.appendChild(btn);
         }
 
-        // Tlačítko pro formulář na víno
+        // --- ZPRACOVÁNÍ FORMULÁŘE PRO VÍNA ---
+        
+        // Reset formuláře
+        window.resetWineForm = function(hideContainer = true) {
+            document.getElementById('add-wine-form').reset();
+            document.getElementById('wine-id').value = '';
+            document.getElementById('wine-form-title').innerText = "Nové víno";
+            document.getElementById('cancel-wine-edit-btn').classList.add('hidden');
+            if (hideContainer) {
+                document.getElementById('add-wine-container').classList.add('hidden');
+                document.getElementById('toggle-add-wine-btn').innerHTML = "Přidat vzorek";
+            }
+        }
+
+        // Načtení dat do formuláře pro úpravu
+        window.loadWineIntoForm = function(wine) {
+            document.getElementById('add-wine-container').classList.remove('hidden');
+            document.getElementById('toggle-add-wine-btn').innerHTML = "Zavřít formulář";
+            
+            document.getElementById('wine-form-title').innerText = "Úprava vzorku: " + wine.name;
+            document.getElementById('wine-id').value = wine.id;
+            document.getElementById('input-name').value = wine.name || '';
+            document.getElementById('input-winery').value = wine.winery || '';
+            document.getElementById('input-classification').value = wine.classification || '';
+            document.getElementById('input-sweetness').value = wine.sweetness || '';
+            document.getElementById('input-alcohol').value = wine.alcohol || '';
+            document.getElementById('input-origin').value = wine.origin || '';
+            document.getElementById('input-pairing').value = wine.pairing || '';
+
+            document.getElementById('cancel-wine-edit-btn').classList.remove('hidden');
+            
+            // Plynulé odrolování nahoru k formuláři
+            window.scrollTo({ top: document.getElementById('add-wine-container').offsetTop - 20, behavior: 'smooth' });
+        }
+
+        // Tlačítko pro rozbalení/zabalení formuláře
         document.getElementById('toggle-add-wine-btn').addEventListener('click', (e) => {
             const formContainer = document.getElementById('add-wine-container');
             if (formContainer.classList.contains('hidden')) {
+                resetWineForm(false); // Vyčistíme, ale neskryjeme
                 formContainer.classList.remove('hidden');
                 e.target.innerHTML = "Zavřít formulář";
             } else {
@@ -490,14 +539,21 @@
             }
         });
 
-        // Uložení VÍNA (vč. Kmotra vzorku a userId)
+        // Tlačítko "Zrušit úpravu"
+        document.getElementById('cancel-wine-edit-btn').addEventListener('click', () => {
+            resetWineForm(true);
+        });
+
+        // Odeslání formuláře (Nové víno i Úprava)
         document.getElementById('add-wine-form').addEventListener('submit', (e) => {
             e.preventDefault();
             if (!currentTastingId) return;
-            const btn = e.target.querySelector('button');
+            const btn = e.target.querySelector('button[type="submit"]');
             btn.innerText = "Ukládám..."; btn.disabled = true;
 
-            const newWine = {
+            const wineId = document.getElementById('wine-id').value;
+
+            const wineData = {
                 tastingId: currentTastingId,
                 name: document.getElementById('input-name').value,
                 winery: document.getElementById('input-winery').value,
@@ -505,24 +561,31 @@
                 sweetness: document.getElementById('input-sweetness').value,
                 alcohol: document.getElementById('input-alcohol').value,
                 origin: document.getElementById('input-origin').value,
-                pairing: document.getElementById('input-pairing').value,
-                createdAt: new Date().toISOString()
+                pairing: document.getElementById('input-pairing').value
             };
 
-            // Pokud je uživatel přihlášen, přidáme křestní jméno jako Kmotra a jeho ID
-            if (currentUser) {
-                newWine.godfather = getFirstName(currentUser);
-                newWine.userId = currentUser.uid;
+            if (wineId) {
+                // Úprava existujícího vína
+                update(ref(db, 'wines/' + wineId), wineData).then(() => {
+                    resetWineForm(true);
+                    alert("Víno úspěšně upraveno!");
+                }).catch(err => showError("Chyba při úpravě: " + err.message)).finally(() => {
+                    btn.innerText = "Uložit víno do databáze"; btn.disabled = false;
+                });
+            } else {
+                // Přidání nového vína
+                wineData.createdAt = new Date().toISOString();
+                if (currentUser) {
+                    wineData.godfather = getFirstName(currentUser);
+                    wineData.userId = currentUser.uid;
+                }
+                push(ref(db, 'wines'), wineData).then(() => {
+                    resetWineForm(true);
+                    alert("Víno úspěšně přidáno!");
+                }).catch(err => showError("Chyba při ukládání: " + err.message)).finally(() => {
+                    btn.innerText = "Uložit víno do databáze"; btn.disabled = false;
+                });
             }
-
-            push(ref(db, 'wines'), newWine).then(() => {
-                e.target.reset();
-                alert("Víno úspěšně přidáno!");
-                document.getElementById('add-wine-container').classList.add('hidden');
-                document.getElementById('toggle-add-wine-btn').innerHTML = "Přidat vzorek";
-            }).catch(err => showError("Chyba: " + err.message)).finally(() => {
-                btn.innerText = "Uložit víno do databáze"; btn.disabled = false;
-            });
         });
 
         // --- ADMINISTRACE AKCÍ ---
