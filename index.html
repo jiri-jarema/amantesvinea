@@ -24,7 +24,7 @@
 
     <div id="app" class="container mx-auto p-4 md:p-12 max-w-6xl relative mt-8">
         
-        <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
+        <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 shadow">
             <strong class="font-bold">Chyba!</strong>
             <span class="block sm:inline" id="error-text"></span>
         </div>
@@ -99,59 +99,80 @@
 
         <div id="admin-login-view" class="hidden max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg border mt-20">
             <h2 class="text-2xl font-bold mb-6 text-center">Přihlášení administrátora</h2>
+            
+            <button id="google-login-btn" class="w-full bg-white border border-gray-300 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-50 transition shadow-sm flex items-center justify-center mb-6">
+                <svg class="w-6 h-6 mr-3" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Přihlásit přes Google
+            </button>
+
+            <div class="relative flex py-5 items-center">
+                <div class="flex-grow border-t border-gray-300"></div>
+                <span class="flex-shrink-0 mx-4 text-gray-400 text-sm">nebo e-mailem</span>
+                <div class="flex-grow border-t border-gray-300"></div>
+            </div>
+
             <form id="login-form" class="space-y-4">
-                <input type="email" id="login-email" placeholder="E-mail" class="w-full border p-3 rounded focus:ring-2 focus:ring-red-500 outline-none" required>
-                <input type="password" id="login-password" placeholder="Heslo" class="w-full border p-3 rounded focus:ring-2 focus:ring-red-500 outline-none" required>
-                <button type="submit" class="w-full bg-gray-900 text-white font-bold py-3 rounded hover:bg-gray-800 transition">Přihlásit</button>
-                <button type="button" id="cancel-login-btn" class="w-full text-gray-500 hover:text-gray-800 mt-2">Zrušit</button>
+                <input type="email" id="login-email" placeholder="E-mail" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-red-500 outline-none">
+                <input type="password" id="login-password" placeholder="Heslo" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-red-500 outline-none">
+                <button type="submit" class="w-full bg-gray-900 text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition">Přihlásit e-mailem</button>
             </form>
+            
+            <button type="button" id="cancel-login-btn" class="w-full text-gray-500 hover:text-gray-800 mt-4 py-2 font-medium transition">Zrušit</button>
         </div>
 
         <div id="admin-dashboard-view" class="hidden">
-            <header class="mb-8 flex justify-between items-center border-b pb-4">
+            <header class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-4">
                 <h1 class="text-3xl font-bold text-gray-900">Správa degustací</h1>
-                <button id="close-admin-btn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded font-bold hover:bg-gray-300">Zavřít administraci</button>
+                <div class="flex gap-4 items-center w-full md:w-auto">
+                    <span id="admin-user-email" class="text-gray-600 text-sm hidden md:inline-block"></span>
+                    <button id="close-admin-btn" class="bg-gray-200 text-gray-800 px-5 py-2 rounded-lg font-bold hover:bg-gray-300 transition shadow-sm w-full md:w-auto">Zavřít administraci</button>
+                </div>
             </header>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1 bg-white p-4 rounded-xl shadow">
-                    <h3 class="font-bold text-lg mb-4">Seznam akcí</h3>
-                    <div id="admin-events-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
-                    <button id="btn-new-event" class="w-full mt-4 bg-green-600 text-white font-bold py-2 rounded hover:bg-green-700">+ Nová akce</button>
+                <div class="lg:col-span-1 bg-white p-4 rounded-xl shadow-lg border border-gray-100">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">Seznam akcí</h3>
+                    <div id="admin-events-list" class="space-y-2 max-h-96 overflow-y-auto pr-2"></div>
+                    <button id="btn-new-event" class="w-full mt-6 bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow">+ Vytvořit novou akci</button>
                 </div>
 
-                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow">
-                    <h3 id="admin-form-title" class="font-bold text-xl mb-4 border-b pb-2">Přidat novou akci</h3>
-                    <form id="admin-event-form" class="space-y-4">
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                    <h3 id="admin-form-title" class="font-bold text-xl mb-6 text-gray-800 border-b pb-2">Přidat novou akci</h3>
+                    <form id="admin-event-form" class="space-y-5">
                         <input type="hidden" id="event-id">
                         
                         <div>
-                            <label class="block text-sm text-gray-600 mb-1">Název akce</label>
-                            <input type="text" id="event-theme" class="w-full border p-2 rounded" required>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Název akce</label>
+                            <input type="text" id="event-theme" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-red-500 outline-none" required>
                         </div>
                         
                         <div>
-                            <label class="block text-sm text-gray-600 mb-1">Datum a čas ukončení příjmu vzorků (např. 10.4.2026 16:30)</label>
-                            <input type="datetime-local" id="event-date" class="w-full border p-2 rounded" required>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Datum a čas ukončení příjmu vzorků (např. 10.4.2026 16:30)</label>
+                            <input type="datetime-local" id="event-date" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-red-500 outline-none" required>
                         </div>
                         
                         <div>
-                            <label class="block text-sm text-gray-600 mb-1">Zobrazované datum pro uživatele (např. "10. dubna 2026 (16:30)")</label>
-                            <input type="text" id="event-display-date" class="w-full border p-2 rounded" required>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Zobrazované datum na kartě (např. "10. dubna 2026 (16:30)")</label>
+                            <input type="text" id="event-display-date" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-red-500 outline-none" required>
                         </div>
 
                         <div>
-                            <label class="block text-sm text-gray-600 mb-1">Krátký popis</label>
-                            <textarea id="event-desc" rows="3" class="w-full border p-2 rounded" required></textarea>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Krátký popis</label>
+                            <textarea id="event-desc" rows="3" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-red-500 outline-none" required></textarea>
                         </div>
 
-                        <div>
-                            <label class="block text-sm text-gray-600 mb-1">Obrázek (Automaticky se zmenší a uloží do databáze)</label>
-                            <input type="file" id="event-image" accept="image/*" class="w-full border p-2 rounded">
-                            <p class="text-xs text-gray-500 mt-1">Při úpravě existující akce nevybírejte soubor, pokud chcete zachovat původní obrázek.</p>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Obrázek (Automaticky se zmenší)</label>
+                            <input type="file" id="event-image" accept="image/*" class="w-full border p-2 rounded bg-white">
+                            <p class="text-xs text-gray-500 mt-2">Při úpravě existující akce nevybírejte soubor, pokud chcete zachovat původní obrázek.</p>
                         </div>
 
-                        <button type="submit" id="submit-event-btn" class="w-full bg-red-700 text-white font-bold py-3 rounded hover:bg-red-800 transition">Uložit akci do databáze</button>
+                        <button type="submit" id="submit-event-btn" class="w-full bg-red-700 text-white font-bold py-4 rounded-lg hover:bg-red-800 transition shadow-lg text-lg mt-4">Uložit akci do databáze</button>
                     </form>
                 </div>
             </div>
@@ -162,9 +183,10 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getDatabase, ref, onValue, push, set, update, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        // Přidán import GoogleAuthProvider a signInWithPopup
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
-        // Konfigurace Firebase (vaše původní)
+        // Konfigurace Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAn6jNCHyJNo194jOPMrate3vQ-sBQdsrk",
             authDomain: "amantesvinea.firebaseapp.com",
@@ -178,6 +200,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const auth = getAuth(app);
+        const googleProvider = new GoogleAuthProvider(); // Inicializace Google Provideru
 
         // Proměnné a elementy
         let currentTastingId = null;
@@ -210,31 +233,39 @@
         
         onAuthStateChanged(auth, (user) => {
             const navBtn = document.getElementById('admin-nav-btn');
+            const adminEmailSpan = document.getElementById('admin-user-email');
             if (user) {
                 isAdminLoggedIn = true;
-                navBtn.textContent = "Odhlásit a zavřít administraci";
+                navBtn.textContent = "Zpět do administrace";
+                adminEmailSpan.textContent = "Přihlášen jako: " + user.email;
             } else {
                 isAdminLoggedIn = false;
                 navBtn.textContent = "Administrace";
+                adminEmailSpan.textContent = "";
             }
         });
 
         document.getElementById('admin-nav-btn').addEventListener('click', () => {
             if (isAdminLoggedIn) {
-                signOut(auth);
-                switchView('home');
+                switchView('adminDashboard');
             } else {
                 switchView('adminLogin');
             }
         });
 
+        document.getElementById('close-admin-btn').addEventListener('click', () => {
+            // Při zavření adminu se rovnou i odhlásíme pro bezpečnost
+            signOut(auth);
+            switchView('home');
+        });
+        
         document.getElementById('cancel-login-btn').addEventListener('click', () => switchView('home'));
-        document.getElementById('close-admin-btn').addEventListener('click', () => switchView('home'));
         document.getElementById('back-button').addEventListener('click', () => {
             switchView('home');
             currentTastingId = null;
         });
 
+        // 1. Logika pro přihlášení E-mailem
         document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -245,6 +276,17 @@
                     switchView('adminDashboard');
                 })
                 .catch(err => showError("Špatné přihlašovací údaje."));
+        });
+
+        // 2. Logika pro přihlášení Googlem
+        document.getElementById('google-login-btn').addEventListener('click', () => {
+            signInWithPopup(auth, googleProvider)
+                .then((result) => {
+                    switchView('adminDashboard');
+                })
+                .catch((error) => {
+                    showError("Chyba při přihlášení přes Google: " + error.message);
+                });
         });
 
         function getTimeRemaining(dateString) {
@@ -292,16 +334,18 @@
 
                 // Kartička na hlavní straně
                 const card = document.createElement('div');
-                card.className = "tasting-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer";
+                card.className = "tasting-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer flex flex-col";
                 card.onclick = () => showDetailPage(tasting);
                 card.innerHTML = `
                     <img src="${tasting.image || 'https://placehold.co/600x400/374151/ffffff?text=' + tasting.theme}" alt="${tasting.theme}" class="w-full h-52 object-cover">
-                    <div class="p-6">
-                        <p class="text-sm font-semibold mb-2 ${isPast ? 'text-gray-400' : 'text-red-600'}">
-                            ${dayInfo} &middot; ${tasting.displayDate}
-                        </p>
-                        <h2 class="text-2xl font-bold text-gray-900 mt-1 mb-3">${tasting.theme}</h2>
-                        <p class="text-gray-600 text-sm mb-5">${tasting.description || ''}</p>
+                    <div class="p-6 flex-grow flex flex-col justify-between">
+                        <div>
+                            <p class="text-sm font-semibold mb-2 ${isPast ? 'text-gray-400' : 'text-red-600'}">
+                                ${dayInfo} &middot; ${tasting.displayDate}
+                            </p>
+                            <h2 class="text-2xl font-bold text-gray-900 mt-1 mb-3">${tasting.theme}</h2>
+                            <p class="text-gray-600 text-sm mb-5 line-clamp-3">${tasting.description || ''}</p>
+                        </div>
                         <div class="flex justify-between items-center text-sm font-medium border-t pt-4">
                             <span class="text-gray-500">Otevřít degustaci</span>
                             <span class="text-red-700 font-bold">&rarr;</span>
@@ -311,13 +355,13 @@
 
                 // Položka v administraci
                 const adminItem = document.createElement('div');
-                adminItem.className = "p-3 border rounded flex justify-between items-center hover:bg-gray-50";
+                adminItem.className = "p-3 border rounded-lg flex justify-between items-center hover:bg-gray-50 mb-2";
                 adminItem.innerHTML = `
                     <div>
                         <p class="font-bold text-sm text-gray-800">${tasting.theme}</p>
                         <p class="text-xs text-gray-500">${tasting.displayDate}</p>
                     </div>
-                    <button class="bg-gray-200 px-3 py-1 rounded text-xs hover:bg-gray-300 font-bold text-gray-700 edit-event-btn" data-id="${tasting.id}">Upravit</button>
+                    <button class="bg-blue-50 px-3 py-1.5 rounded border border-blue-200 text-xs hover:bg-blue-100 font-bold text-blue-700 transition edit-event-btn" data-id="${tasting.id}">Upravit</button>
                 `;
                 adminListContainer.appendChild(adminItem);
             });
@@ -365,7 +409,7 @@
                 const data = snapshot.val();
 
                 if (!data) {
-                    wineList.innerHTML = `<p class="text-center text-gray-500 italic p-8">Zatím nebyla přidána žádná vína.</p>`;
+                    wineList.innerHTML = `<div class="text-center bg-white p-8 rounded-xl border border-dashed border-gray-300"><p class="text-gray-500 italic">Zatím nebyla přidána žádná vína.</p></div>`;
                     wineLoader.classList.add('hidden');
                     return;
                 }
@@ -375,17 +419,17 @@
 
                 wines.forEach((wine, index) => {
                     const wineCard = document.createElement('div');
-                    wineCard.className = "bg-white rounded-xl shadow p-6 border-l-8 border-red-700 relative";
+                    wineCard.className = "bg-white rounded-xl shadow-sm border border-gray-100 p-6 border-l-8 border-l-red-700 relative";
                     wineCard.innerHTML = `
-                        <h3 class="text-xl font-bold text-gray-900 mb-2"><span class="text-red-700">${index+1}.</span> ${wine.name}</h3>
-                        <p class="text-md text-gray-700 font-semibold mb-4">${wine.winery}</p>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 text-sm">
-                            <div><p class="text-gray-500">Klasifikace</p><p class="font-bold">${wine.classification || '-'}</p></div>
-                            <div><p class="text-gray-500">Cukernatost</p><p class="font-bold">${wine.sweetness || '-'}</p></div>
-                            <div><p class="text-gray-500">Alkohol</p><p class="font-bold">${wine.alcohol || '-'}</p></div>
-                            <div><p class="text-gray-500">Původ</p><p class="font-bold">${wine.origin || '-'}</p></div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-1"><span class="text-red-700 mr-2">${index+1}.</span> ${wine.name}</h3>
+                        <p class="text-md text-gray-600 font-medium mb-4">${wine.winery}</p>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-2 text-sm bg-gray-50 p-4 rounded-lg">
+                            <div><p class="text-gray-400 text-xs uppercase tracking-wide">Klasifikace</p><p class="font-bold text-gray-800">${wine.classification || '-'}</p></div>
+                            <div><p class="text-gray-400 text-xs uppercase tracking-wide">Cukernatost</p><p class="font-bold text-gray-800">${wine.sweetness || '-'}</p></div>
+                            <div><p class="text-gray-400 text-xs uppercase tracking-wide">Alkohol</p><p class="font-bold text-gray-800">${wine.alcohol || '-'}</p></div>
+                            <div><p class="text-gray-400 text-xs uppercase tracking-wide">Původ</p><p class="font-bold text-gray-800">${wine.origin || '-'}</p></div>
                         </div>
-                        ${wine.pairing ? `<div class="mt-4 p-3 bg-gray-50 rounded"><p class="text-gray-500 text-xs">Poznámka:</p><p class="text-sm font-medium">${wine.pairing}</p></div>` : ''}`;
+                        ${wine.pairing ? `<div class="mt-4"><p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Poznámka / Párování:</p><p class="text-sm font-medium text-gray-700">${wine.pairing}</p></div>` : ''}`;
                     wineList.appendChild(wineCard);
                 });
                 wineLoader.classList.add('hidden');
@@ -490,7 +534,6 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
                         
-                        // Zmenšíme data odesláním do jpg s kompresí 70%
                         resolve(canvas.toDataURL('image/jpeg', 0.7));
                     };
                     img.onerror = (error) => reject(error);
@@ -513,7 +556,7 @@
                 if (fileInput.files.length > 0) {
                     const file = fileInput.files[0];
                     if (file.size > 5 * 1024 * 1024) throw new Error("Soubor je příliš velký. Max 5 MB.");
-                    imageUrl = await processImageFile(file); // Zmenšení a převod na text
+                    imageUrl = await processImageFile(file);
                 }
 
                 const eventData = {
