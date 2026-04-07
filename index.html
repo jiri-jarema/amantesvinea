@@ -210,12 +210,11 @@
         let globalTastings = [];
         let currentUser = null; 
         
-        // Funkce pro získání Křestního jména z objektu uživatele
         function getFirstName(user) {
             if (!user) return null;
-            if (user.displayName) return user.displayName.split(' ')[0]; // Z Googlu vezme první slovo (Jméno)
+            if (user.displayName) return user.displayName.split(' ')[0];
             if (user.email) {
-                let namePart = user.email.split('@')[0].split('.')[0]; // Např. z jan.novak@gmail vezme "jan"
+                let namePart = user.email.split('@')[0].split('.')[0];
                 return namePart.charAt(0).toUpperCase() + namePart.slice(1);
             }
             return "Člen";
@@ -256,24 +255,19 @@
                 navBtn.textContent = "Přihlášení pro členy";
             }
 
-            // Pokud jsme na detailu akce a přihlásíme se/odhlásíme, chceme překreslit tlačítka
+            // Pokud jsme zrovna na detailu akce a změní se stav přihlášení, chceme detail překreslit (např. aby se objevila tlačítka Smazat)
             if (currentTastingId && !views.detail.classList.contains('hidden')) {
-                renderAttendanceControls();
+                const currentTasting = globalTastings.find(t => t.id === currentTastingId);
+                if (currentTasting) showDetailPage(currentTasting);
             }
         });
 
         document.getElementById('auth-nav-btn').addEventListener('click', () => {
-            if (currentUser) {
-                switchView('dashboard');
-            } else {
-                switchView('login');
-            }
+            if (currentUser) { switchView('dashboard'); } else { switchView('login'); }
         });
 
         document.getElementById('logout-btn').addEventListener('click', () => {
-            signOut(auth).then(() => {
-                switchView('home');
-            });
+            signOut(auth).then(() => { switchView('home'); });
         });
 
         document.getElementById('close-dashboard-btn').addEventListener('click', () => switchView('home'));
@@ -378,8 +372,8 @@
                 btnAdd.classList.add('hidden'); msgClosed.classList.remove('hidden');
             }
 
-            // Načtení a render Účastníků
-            if (attendeesUnsubscribe) attendeesUnsubscribe(); // Vyčistit starý listener
+            // Načtení Účastníků
+            if (attendeesUnsubscribe) attendeesUnsubscribe();
             attendeesUnsubscribe = onValue(ref(db, 'attendees/' + currentTastingId), (snapshot) => {
                 const data = snapshot.val() || {};
                 const listEl = document.getElementById('attendees-list');
@@ -394,8 +388,6 @@
                         listEl.innerHTML += `<span class="bg-blue-50 border border-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">${name}</span>`;
                     });
                 }
-                
-                // Překreslit tlačítka
                 renderAttendanceControls(data);
             });
 
@@ -416,24 +408,47 @@
                 const wines = Object.keys(data).map(key => ({ id: key, ...data[key] })).sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
                 wines.forEach((wine, index) => {
                     const wineCard = document.createElement('div');
-                    wineCard.className = "bg-white rounded-xl shadow-sm border border-gray-100 p-6 border-l-8 border-l-red-700 relative";
+                    wineCard.className = "bg-white rounded-xl shadow-sm border border-gray-100 p-6 border-l-8 border-l-red-700 relative flex flex-col";
                     
-                    // Štítek kmotra vzorku
                     const godfatherBadge = wine.godfather ? `<div class="absolute top-4 right-4 bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full border border-yellow-200">Kmotr vzorku: ${wine.godfather}</div>` : '';
+
+                    // Modul pro smazání (Zobrazí se pouze přihlášeným uživatelům)
+                    const deleteBtnHtml = currentUser ? `
+                        <div class="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                            <button class="text-red-500 hover:text-red-700 text-sm font-semibold flex items-center transition delete-wine-btn" data-id="${wine.id}">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                Smazat vzorek
+                            </button>
+                        </div>
+                    ` : '';
 
                     wineCard.innerHTML = `
                         ${godfatherBadge}
                         <h3 class="text-xl font-bold text-gray-900 mb-1 pr-32"><span class="text-red-700 mr-2">${index+1}.</span> ${wine.name}</h3>
                         <p class="text-md text-gray-600 font-medium mb-4">${wine.winery}</p>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-2 text-sm bg-gray-50 p-4 rounded-lg">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-2 text-sm bg-gray-50 p-4 rounded-lg flex-grow">
                             <div><p class="text-gray-400 text-xs uppercase tracking-wide">Klasifikace</p><p class="font-bold text-gray-800">${wine.classification || '-'}</p></div>
                             <div><p class="text-gray-400 text-xs uppercase tracking-wide">Cukernatost</p><p class="font-bold text-gray-800">${wine.sweetness || '-'}</p></div>
                             <div><p class="text-gray-400 text-xs uppercase tracking-wide">Alkohol</p><p class="font-bold text-gray-800">${wine.alcohol || '-'}</p></div>
                             <div><p class="text-gray-400 text-xs uppercase tracking-wide">Původ</p><p class="font-bold text-gray-800">${wine.origin || '-'}</p></div>
                         </div>
-                        ${wine.pairing ? `<div class="mt-4"><p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Poznámka:</p><p class="text-sm font-medium text-gray-700">${wine.pairing}</p></div>` : ''}`;
+                        ${wine.pairing ? `<div class="mt-4"><p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Poznámka:</p><p class="text-sm font-medium text-gray-700">${wine.pairing}</p></div>` : ''}
+                        ${deleteBtnHtml}
+                    `;
                     wineList.appendChild(wineCard);
                 });
+
+                // Připojení logiky na smazání vzorku
+                document.querySelectorAll('.delete-wine-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const wineId = e.currentTarget.dataset.id;
+                        if(confirm("Opravdu chcete tento vzorek odstranit z degustace?")) {
+                            remove(ref(db, 'wines/' + wineId))
+                                .catch(err => showError("Chyba při mazání: " + err.message));
+                        }
+                    });
+                });
+
                 wineLoader.classList.add('hidden');
             });
         }
@@ -447,7 +462,6 @@
                 return;
             }
 
-            // Pokud data nemáme, zkusíme je fetchovat jednorázově (fallback)
             const checkData = attendeesData || {}; 
             const isAttending = checkData[currentUser.uid] !== undefined;
 
@@ -476,7 +490,7 @@
             }
         });
 
-        // Uložení VÍNA (vč. Kmotra vzorku)
+        // Uložení VÍNA (vč. Kmotra vzorku a userId)
         document.getElementById('add-wine-form').addEventListener('submit', (e) => {
             e.preventDefault();
             if (!currentTastingId) return;
@@ -495,9 +509,10 @@
                 createdAt: new Date().toISOString()
             };
 
-            // Pokud je uživatel přihlášen, přidáme křestní jméno jako Kmotra
+            // Pokud je uživatel přihlášen, přidáme křestní jméno jako Kmotra a jeho ID
             if (currentUser) {
                 newWine.godfather = getFirstName(currentUser);
+                newWine.userId = currentUser.uid;
             }
 
             push(ref(db, 'wines'), newWine).then(() => {
@@ -510,7 +525,7 @@
             });
         });
 
-        // --- ADMINISTRACE AKCÍ (Nemění se) ---
+        // --- ADMINISTRACE AKCÍ ---
         const adminForm = document.getElementById('admin-event-form');
         document.getElementById('btn-new-event').addEventListener('click', () => {
             adminForm.reset();
