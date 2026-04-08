@@ -29,6 +29,57 @@
             <span class="block sm:inline" id="error-text"></span>
         </div>
 
+        <div id="rating-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
+                <button id="close-rating-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <h3 id="rating-wine-name" class="text-2xl font-bold mb-6 text-gray-900 border-b pb-2">Hodnocení vína</h3>
+                
+                <form id="rating-form" class="space-y-6">
+                    <input type="hidden" id="rating-wine-id">
+                    
+                    <div>
+                        <label class="flex justify-between items-end font-semibold text-gray-700 mb-1">
+                            <span>1. Vzhled <span class="text-xs font-normal text-gray-500 block">(Čirost, jiskra, barva)</span></span>
+                            <span class="text-red-700 font-bold text-lg"><span id="out-vzhled">3</span><span class="text-sm text-gray-400 font-normal"> / 5</span></span>
+                        </label>
+                        <input type="range" id="rate-vzhled" min="1" max="5" value="3" class="w-full accent-red-700">
+                        <div class="flex justify-between text-xs text-gray-400 px-1 mt-1 font-semibold"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+                    </div>
+
+                    <div>
+                        <label class="flex justify-between items-end font-semibold text-gray-700 mb-1">
+                            <span>2. Vůně <span class="text-xs font-normal text-gray-500 block">(Intenzita, čistota, charakter)</span></span>
+                            <span class="text-red-700 font-bold text-lg"><span id="out-vune">3</span><span class="text-sm text-gray-400 font-normal"> / 5</span></span>
+                        </label>
+                        <input type="range" id="rate-vune" min="1" max="5" value="3" class="w-full accent-red-700">
+                        <div class="flex justify-between text-xs text-gray-400 px-1 mt-1 font-semibold"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+                    </div>
+
+                    <div>
+                        <label class="flex justify-between items-end font-semibold text-gray-700 mb-1">
+                            <span>3. Chuť <span class="text-xs font-normal text-gray-500 block">(Harmonická, perzistence)</span></span>
+                            <span class="text-red-700 font-bold text-lg"><span id="out-chut">3</span><span class="text-sm text-gray-400 font-normal"> / 5</span></span>
+                        </label>
+                        <input type="range" id="rate-chut" min="1" max="5" value="3" class="w-full accent-red-700">
+                        <div class="flex justify-between text-xs text-gray-400 px-1 mt-1 font-semibold"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+                    </div>
+
+                    <div>
+                        <label class="flex justify-between items-end font-semibold text-gray-700 mb-1">
+                            <span>4. Celkový dojem <span class="text-xs font-normal text-gray-500 block">(Souhrnná harmonie)</span></span>
+                            <span class="text-red-700 font-bold text-lg"><span id="out-dojem">3</span><span class="text-sm text-gray-400 font-normal"> / 5</span></span>
+                        </label>
+                        <input type="range" id="rate-dojem" min="1" max="5" value="3" class="w-full accent-red-700">
+                        <div class="flex justify-between text-xs text-gray-400 px-1 mt-1 font-semibold"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-red-700 text-white font-bold py-3 rounded-lg hover:bg-red-800 transition shadow-lg mt-2">Odeslat hodnocení</button>
+                </form>
+            </div>
+        </div>
+
         <div id="home">
             <header class="text-center mb-16 pt-8">
                 <img src="amantes_vinea_logo.png" alt="Logo klubu" class="h-28 mx-auto mb-6 drop-shadow-lg" onerror="this.onerror=null;this.src='https://placehold.co/250x110/374151/ffffff?text=Amantes+Vinea';">
@@ -54,8 +105,7 @@
                         <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         Přihlášení účastníci
                     </h3>
-                    <div id="attendance-controls">
-                        </div>
+                    <div id="attendance-controls"></div>
                 </div>
                 <div id="attendees-list" class="flex flex-wrap gap-2">
                     <p class="text-gray-500 italic text-sm">Zatím není nikdo přihlášen.</p>
@@ -190,7 +240,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getDatabase, ref, onValue, push, set, update, remove, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+        import { getDatabase, ref, onValue, push, set, update, remove, query, orderByChild, equalTo, get } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -211,6 +261,7 @@
         let currentTastingId = null;
         let globalTastings = [];
         let currentUser = null; 
+        window.ratingUnsubscribes = [];
         
         function getFirstName(user) {
             if (!user) return null;
@@ -353,7 +404,7 @@
             document.getElementById('home-loader').classList.add('hidden');
         });
 
-        // --- ZOBRAZENÍ DETAILU & ÚČASTNÍKŮ ---
+        // --- ZOBRAZENÍ DETAILU & ÚČASTNÍKŮ & HODNOCENÍ ---
         let attendeesUnsubscribe = null;
 
         window.showDetailPage = function(tasting) {
@@ -361,6 +412,10 @@
             document.getElementById('detail-title').textContent = tasting.theme;
             switchView('detail');
             
+            // Vyčistit předchozí listenery hodnocení
+            window.ratingUnsubscribes.forEach(unsub => unsub());
+            window.ratingUnsubscribes = [];
+
             // Formulář Vína - Reset
             resetWineForm();
             const btnAdd = document.getElementById('toggle-add-wine-btn');
@@ -410,24 +465,36 @@
                     const wineCard = document.createElement('div');
                     wineCard.className = "bg-white rounded-xl shadow-sm border border-gray-100 p-6 border-l-8 border-l-red-700 relative flex flex-col";
                     
-                    const godfatherBadge = wine.godfather ? `<div class="absolute top-4 right-4 bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full border border-yellow-200">Kmotr vzorku: ${wine.godfather}</div>` : '';
+                    const godfatherBadge = wine.godfather ? `<div class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full border border-yellow-200 shadow-sm">Kmotr vzorku: ${wine.godfather}</div>` : '';
+                    const ratingContainerId = `rating-${wine.id}`;
 
-                    // Modul pro editaci a smazání
                     const actionsHtml = currentUser ? `
-                        <div class="mt-4 pt-4 border-t border-gray-100 flex justify-end gap-4">
-                            <button class="text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center transition edit-wine-btn" data-id="${wine.id}">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                Upravit
+                        <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap justify-between items-center gap-4">
+                            <button class="bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-bold py-2.5 px-5 rounded-lg shadow transition flex items-center rate-wine-btn" data-id="${wine.id}" data-name="${wine.name}">
+                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                <span>Hodnotit vzorek</span>
                             </button>
-                            <button class="text-red-500 hover:text-red-700 text-sm font-semibold flex items-center transition delete-wine-btn" data-id="${wine.id}">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                Smazat
-                            </button>
+                            <div class="flex gap-4">
+                                <button class="text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center transition edit-wine-btn" data-id="${wine.id}">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    Upravit
+                                </button>
+                                <button class="text-red-500 hover:text-red-700 text-sm font-semibold flex items-center transition delete-wine-btn" data-id="${wine.id}">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    Smazat
+                                </button>
+                            </div>
                         </div>
                     ` : '';
 
                     wineCard.innerHTML = `
-                        ${godfatherBadge}
+                        <div class="absolute top-4 right-4 flex flex-col items-end gap-2 z-10">
+                            ${godfatherBadge}
+                            <div id="${ratingContainerId}" class="bg-gray-800 text-white text-sm font-bold px-3 py-1.5 rounded-full flex items-center hidden shadow-md">
+                                <svg class="w-4 h-4 text-yellow-400 mr-1.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                <span class="avg-val"></span> <span class="font-normal text-xs text-gray-300 ml-1">(<span class="rating-count"></span>x)</span>
+                            </div>
+                        </div>
                         <h3 class="text-xl font-bold text-gray-900 mb-1 pr-32"><span class="text-red-700 mr-2">${index+1}.</span> ${wine.name}</h3>
                         <p class="text-md text-gray-600 font-medium mb-4">${wine.winery}</p>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-2 text-sm bg-gray-50 p-4 rounded-lg flex-grow">
@@ -440,9 +507,60 @@
                         ${actionsHtml}
                     `;
                     wineList.appendChild(wineCard);
+
+                    // Posluchač na hodnocení tohoto konkrétního vína (počítá průměr v reálném čase)
+                    const rUnsub = onValue(ref(db, 'ratings/' + wine.id), (rSnap) => {
+                        const rData = rSnap.val();
+                        const rContainer = document.getElementById(ratingContainerId);
+                        if(rData && rContainer) {
+                            const keys = Object.keys(rData);
+                            const count = keys.length;
+                            const sum = keys.reduce((acc, k) => acc + rData[k].prumer, 0);
+                            const avg = (sum / count).toFixed(1);
+                            
+                            rContainer.querySelector('.avg-val').textContent = avg;
+                            rContainer.querySelector('.rating-count').textContent = count;
+                            rContainer.classList.remove('hidden');
+                            
+                            // Pokud aktuální uživatel hodnotil, upravíme tlačítko
+                            if (currentUser && rData[currentUser.uid]) {
+                                const btn = document.querySelector(`.rate-wine-btn[data-id="${wine.id}"]`);
+                                if(btn) {
+                                    btn.innerHTML = `<svg class="w-4 h-4 mr-2 text-green-100" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg> <span>Moje známka: ${rData[currentUser.uid].prumer} (Upravit)</span>`;
+                                    btn.classList.replace('bg-yellow-500', 'bg-green-600');
+                                    btn.classList.replace('hover:bg-yellow-600', 'hover:bg-green-700');
+                                }
+                            }
+                        } else if(rContainer) {
+                            rContainer.classList.add('hidden');
+                        }
+                    });
+                    window.ratingUnsubscribes.push(rUnsub);
                 });
 
-                // Připojení logiky na editaci vzorku
+                // Událost pro Otevření modálu hodnocení (Delegace)
+                document.querySelectorAll('.rate-wine-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const b = e.currentTarget;
+                        const wineId = b.dataset.id;
+                        document.getElementById('rating-wine-id').value = wineId;
+                        document.getElementById('rating-wine-name').textContent = "Hodnocení: " + b.dataset.name;
+                        
+                        // Zkusíme načíst existující hodnocení uživatele
+                        get(ref(db, `ratings/${wineId}/${currentUser.uid}`)).then(snap => {
+                            let val = { vzhled: 3, vune: 3, chut: 3, celkovy_dojem: 3 };
+                            if (snap.exists()) val = snap.val();
+                            
+                            ['vzhled', 'vune', 'chut', 'dojem'].forEach(id => {
+                                const realId = id === 'dojem' ? 'celkovy_dojem' : id;
+                                document.getElementById('rate-' + id).value = val[realId];
+                                document.getElementById('out-' + id).textContent = val[realId];
+                            });
+                            document.getElementById('rating-modal').classList.remove('hidden');
+                        });
+                    });
+                });
+
                 document.querySelectorAll('.edit-wine-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const wineId = e.currentTarget.dataset.id;
@@ -451,7 +569,6 @@
                     });
                 });
 
-                // Připojení logiky na smazání vzorku
                 document.querySelectorAll('.delete-wine-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const wineId = e.currentTarget.dataset.id;
@@ -465,6 +582,34 @@
                 wineLoader.classList.add('hidden');
             });
         }
+
+        // Aktualizace textu posuvníků při tažení
+        ['vzhled', 'vune', 'chut', 'dojem'].forEach(id => {
+            document.getElementById('rate-' + id).addEventListener('input', (e) => {
+                document.getElementById('out-' + id).textContent = e.target.value;
+            });
+        });
+
+        // Odeslání hodnocení
+        document.getElementById('rating-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const wineId = document.getElementById('rating-wine-id').value;
+            const vzhled = parseInt(document.getElementById('rate-vzhled').value);
+            const vune = parseInt(document.getElementById('rate-vune').value);
+            const chut = parseInt(document.getElementById('rate-chut').value);
+            const dojem = parseInt(document.getElementById('rate-dojem').value);
+            const prumer = (vzhled + vune + chut + dojem) / 4;
+
+            const ratingData = { vzhled, vune, chut, celkovy_dojem: dojem, prumer };
+
+            set(ref(db, `ratings/${wineId}/${currentUser.uid}`), ratingData).then(() => {
+                document.getElementById('rating-modal').classList.add('hidden');
+            }).catch(err => showError("Chyba při ukládání hodnocení: " + err.message));
+        });
+
+        document.getElementById('close-rating-modal').addEventListener('click', () => {
+            document.getElementById('rating-modal').classList.add('hidden');
+        });
 
         function renderAttendanceControls(attendeesData = null) {
             const container = document.getElementById('attendance-controls');
@@ -493,7 +638,6 @@
 
         // --- ZPRACOVÁNÍ FORMULÁŘE PRO VÍNA ---
         
-        // Reset formuláře
         window.resetWineForm = function(hideContainer = true) {
             document.getElementById('add-wine-form').reset();
             document.getElementById('wine-id').value = '';
@@ -505,7 +649,6 @@
             }
         }
 
-        // Načtení dat do formuláře pro úpravu
         window.loadWineIntoForm = function(wine) {
             document.getElementById('add-wine-container').classList.remove('hidden');
             document.getElementById('toggle-add-wine-btn').innerHTML = "Zavřít formulář";
@@ -521,16 +664,13 @@
             document.getElementById('input-pairing').value = wine.pairing || '';
 
             document.getElementById('cancel-wine-edit-btn').classList.remove('hidden');
-            
-            // Plynulé odrolování nahoru k formuláři
             window.scrollTo({ top: document.getElementById('add-wine-container').offsetTop - 20, behavior: 'smooth' });
         }
 
-        // Tlačítko pro rozbalení/zabalení formuláře
         document.getElementById('toggle-add-wine-btn').addEventListener('click', (e) => {
             const formContainer = document.getElementById('add-wine-container');
             if (formContainer.classList.contains('hidden')) {
-                resetWineForm(false); // Vyčistíme, ale neskryjeme
+                resetWineForm(false); 
                 formContainer.classList.remove('hidden');
                 e.target.innerHTML = "Zavřít formulář";
             } else {
@@ -539,12 +679,8 @@
             }
         });
 
-        // Tlačítko "Zrušit úpravu"
-        document.getElementById('cancel-wine-edit-btn').addEventListener('click', () => {
-            resetWineForm(true);
-        });
+        document.getElementById('cancel-wine-edit-btn').addEventListener('click', () => { resetWineForm(true); });
 
-        // Odeslání formuláře (Nové víno i Úprava)
         document.getElementById('add-wine-form').addEventListener('submit', (e) => {
             e.preventDefault();
             if (!currentTastingId) return;
@@ -565,7 +701,6 @@
             };
 
             if (wineId) {
-                // Úprava existujícího vína
                 update(ref(db, 'wines/' + wineId), wineData).then(() => {
                     resetWineForm(true);
                     alert("Víno úspěšně upraveno!");
@@ -573,7 +708,6 @@
                     btn.innerText = "Uložit víno do databáze"; btn.disabled = false;
                 });
             } else {
-                // Přidání nového vína
                 wineData.createdAt = new Date().toISOString();
                 if (currentUser) {
                     wineData.godfather = getFirstName(currentUser);
