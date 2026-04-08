@@ -508,7 +508,7 @@
                     `;
                     wineList.appendChild(wineCard);
 
-                    // Posluchač na hodnocení tohoto konkrétního vína (počítá průměr v reálném čase)
+                    // Posluchač na hodnocení
                     const rUnsub = onValue(ref(db, 'ratings/' + wine.id), (rSnap) => {
                         const rData = rSnap.val();
                         const rContainer = document.getElementById(ratingContainerId);
@@ -522,7 +522,6 @@
                             rContainer.querySelector('.rating-count').textContent = count;
                             rContainer.classList.remove('hidden');
                             
-                            // Pokud aktuální uživatel hodnotil, upravíme tlačítko
                             if (currentUser && rData[currentUser.uid]) {
                                 const btn = document.querySelector(`.rate-wine-btn[data-id="${wine.id}"]`);
                                 if(btn) {
@@ -538,7 +537,6 @@
                     window.ratingUnsubscribes.push(rUnsub);
                 });
 
-                // Událost pro Otevření modálu hodnocení (Delegace)
                 document.querySelectorAll('.rate-wine-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const b = e.currentTarget;
@@ -546,7 +544,6 @@
                         document.getElementById('rating-wine-id').value = wineId;
                         document.getElementById('rating-wine-name').textContent = "Hodnocení: " + b.dataset.name;
                         
-                        // Zkusíme načíst existující hodnocení uživatele
                         get(ref(db, `ratings/${wineId}/${currentUser.uid}`)).then(snap => {
                             let val = { vzhled: 3, vune: 3, chut: 3, celkovy_dojem: 3 };
                             if (snap.exists()) val = snap.val();
@@ -581,10 +578,10 @@
 
                 wineLoader.classList.add('hidden');
             });
-        }
+        }; // ZDE BYL DOPLNĚN CHYBĚJÍCÍ STŘEDNÍK
 
         // Aktualizace textu posuvníků při tažení
-        ['vzhled', 'vune', 'chut', 'dojem'].forEach(id => {
+        ;['vzhled', 'vune', 'chut', 'dojem'].forEach(id => {
             document.getElementById('rate-' + id).addEventListener('input', (e) => {
                 document.getElementById('out-' + id).textContent = e.target.value;
             });
